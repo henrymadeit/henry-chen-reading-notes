@@ -1,0 +1,7 @@
+---
+import { getCollection } from 'astro:content';
+import CategoryPage from '../components/CategoryPage.astro';
+import { visibleArticles } from '../lib/articles';
+const articles = visibleArticles(await getCollection('articles')).filter((a) => a.data.category === '歷史與文明');
+---
+<CategoryPage title="歷史與文明" description="從帝國、海洋、宗教與地方，理解文明的選擇。" articles={articles} />

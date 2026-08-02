@@ -1,0 +1,27 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import { visibleArticles, categories, categoryPaths } from '../lib/articles';
+const articles = visibleArticles(await getCollection('articles'));
+const featured = articles.filter((a) => a.data.featured).slice(0, 3);
+const latest = articles.slice(0, 6);
+const categoryDescriptions = {
+  '閱讀隨筆': '一本書如何改變我理解世界的方式。',
+  '歷史與文明': '從帝國、海洋、宗教與地方，理解文明的選擇。',
+  '科技': 'AI、半導體、產業與技術世界的結構性觀察。',
+  '廈門大稻埕陳氏': '一個家族往返廈門、上海與大稻埕的百年記憶。'
+};
+---
+<BaseLayout>
+  <section class="hero wrap">
+    <p class="eyebrow">Henry Chen 的閱讀隨筆</p>
+    <h1>Henry Chen 的閱讀隨筆</h1>
+    <p class="hero-copy">旅行讓我看見世界，閱讀讓我理解世界，寫作則整理思緒。</p>
+  </section>
+  <section class="wrap topic-grid" aria-label="主題">
+    {categories.map((category) => <a class="topic-card" href={categoryPaths[category]}><h2>{category}</h2><p>{categoryDescriptions[category]}</p></a>)}
+  </section>
+  {featured.length > 0 && <section class="wrap section"><div class="section-heading"><h2>精選文章</h2></div><div class="card-grid">{featured.map((article) => <ArticleCard article={article} />)}</div></section>}
+  <section class="wrap section"><div class="section-heading"><h2>最新文章</h2><a href="/archive/">查看全部</a></div><div class="card-grid">{latest.map((article) => <ArticleCard article={article} />)}</div></section>
+</BaseLayout>

@@ -1,0 +1,13 @@
+---
+import type { Article } from '../lib/articles';
+import { dateFormatter } from '../lib/articles';
+const { article, compact = false } = Astro.props as { article: Article; compact?: boolean };
+---
+<article class:list={['article-card', { compact }]}>
+  <p class="eyebrow">{article.data.category} · {dateFormatter.format(article.data.published)}</p>
+  <h2><a href={`/articles/${article.id}/`}>{article.data.title}</a></h2>
+  {!compact && <p>{article.data.description}</p>}
+  <div class="tag-row">
+    {article.data.tags.slice(0, compact ? 2 : 4).map((tag) => <a class="tag" href={`/tags/${encodeURIComponent(tag)}/`}>{tag}</a>)}
+  </div>
+</article>

@@ -1,0 +1,9 @@
+---
+const { title, items, base } = Astro.props as { title: string; items: {label:string; count:number}[]; base: string };
+---
+<section class="index-block">
+  <h2>{title}</h2>
+  <div class="index-grid">
+    {items.map((item) => <a href={`${base}${encodeURIComponent(item.label)}/`}><span>{item.label}</span><small>{item.count}</small></a>)}
+  </div>
+</section>

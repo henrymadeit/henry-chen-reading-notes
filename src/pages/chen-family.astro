@@ -1,0 +1,7 @@
+---
+import { getCollection } from 'astro:content';
+import CategoryPage from '../components/CategoryPage.astro';
+import { visibleArticles } from '../lib/articles';
+const articles = visibleArticles(await getCollection('articles')).filter((a) => a.data.category === '廈門大稻埕陳氏');
+---
+<CategoryPage title="廈門大稻埕陳氏" description="一個家族往返廈門、上海與大稻埕的百年記憶。" articles={articles} />

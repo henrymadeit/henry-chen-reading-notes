@@ -1,0 +1,10 @@
+---
+import type { Article } from '../lib/articles';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from './ArticleCard.astro';
+const { title, description, articles } = Astro.props as { title: string; description: string; articles: Article[] };
+---
+<BaseLayout title={`${title}｜Henry Chen 的閱讀隨筆`} description={description}>
+  <header class="page-header wrap"><p class="eyebrow">Section</p><h1>{title}</h1><p>{description}</p></header>
+  <section class="wrap section"><div class="card-grid">{articles.map((article) => <ArticleCard article={article} />)}</div></section>
+</BaseLayout>

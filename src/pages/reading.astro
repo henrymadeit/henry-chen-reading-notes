@@ -1,0 +1,7 @@
+---
+import { getCollection } from 'astro:content';
+import CategoryPage from '../components/CategoryPage.astro';
+import { visibleArticles } from '../lib/articles';
+const articles = visibleArticles(await getCollection('articles')).filter((a) => a.data.category === '閱讀隨筆');
+---
+<CategoryPage title="閱讀隨筆" description="一本書如何改變我理解世界的方式。" articles={articles} />

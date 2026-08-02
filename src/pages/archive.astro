@@ -1,0 +1,17 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import IndexLinks from '../components/IndexLinks.astro';
+import { visibleArticles, getYear } from '../lib/articles';
+const articles = visibleArticles(await getCollection('articles'));
+const years = [...new Set(articles.map(getYear))].map((label) => ({ label, count: articles.filter((a) => getYear(a) === label).length }));
+const tags = [...new Set(articles.flatMap((a) => a.data.tags))].sort((a,b)=>a.localeCompare(b,'zh-Hant')).map((label) => ({ label, count: articles.filter((a) => a.data.tags.includes(label)).length }));
+const authors = [...new Set(articles.map((a) => a.data.bookAuthor).filter(Boolean))] as string[];
+const authorItems = authors.sort((a,b)=>a.localeCompare(b,'zh-Hant')).map((label) => ({label, count: articles.filter((a)=>a.data.bookAuthor===label).length}));
+---
+<BaseLayout title="文章典藏｜Henry Chen 的閱讀隨筆">
+  <header class="page-header wrap"><p class="eyebrow">Archive</p><h1>文章典藏</h1><p>依年份、標籤與作者進入文章。</p></header>
+  <div class="wrap"><IndexLinks title="年份" items={years} base="/years/" /><IndexLinks title="作者" items={authorItems} base="/authors/" /><IndexLinks title="標籤" items={tags} base="/tags/" /></div>
+  <section class="wrap section"><h2>全部文章</h2><div class="card-grid">{articles.map((a)=><ArticleCard article={a}/>)}</div></section>
+</BaseLayout>

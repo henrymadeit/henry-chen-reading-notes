@@ -1,0 +1,38 @@
+---
+const path = Astro.url.pathname;
+const links = [
+  ['閱讀隨筆', '/reading/'],
+  ['歷史與文明', '/history/'],
+  ['科技', '/technology/'],
+  ['廈門大稻埕陳氏', '/chen-family/']
+];
+---
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">Henry Chen 的閱讀隨筆</a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">選單</button>
+    <nav id="site-nav" aria-label="主要導覽">
+      {links.map(([label, href]) => <a href={href} aria-current={path.startsWith(href) ? 'page' : undefined}>{label}</a>)}
+      <a href="/search/" aria-current={path.startsWith('/search') ? 'page' : undefined}>搜尋</a>
+      <a href="/about/" aria-current={path.startsWith('/about') ? 'page' : undefined}>關於</a>
+    </nav>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="切換深色模式" title="切換深色模式">◐</button>
+  </div>
+</header>
+<script is:inline>
+  const bindHeader = () => {
+    const menu = document.querySelector('.menu-toggle');
+    const nav = document.querySelector('#site-nav');
+    menu?.addEventListener('click', () => {
+      const open = menu.getAttribute('aria-expanded') === 'true';
+      menu.setAttribute('aria-expanded', String(!open));
+      nav?.classList.toggle('open', !open);
+    });
+    document.querySelector('#theme-toggle')?.addEventListener('click', () => {
+      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem('theme', next);
+    });
+  };
+  bindHeader();
+</script>
