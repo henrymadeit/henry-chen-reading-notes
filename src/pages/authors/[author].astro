@@ -10,4 +10,4 @@ export async function getStaticPaths() {
 }
 const { author, articles } = Astro.props;
 ---
-<BaseLayout title={`${author}｜作者索引｜Henry Chen 的閱讀隨筆`}><header class="page-header wrap"><p class="eyebrow">Author</p><h1>{author}</h1><p>{articles.length} 篇閱讀隨筆</p></header><section class="wrap section"><div class="card-grid">{articles.map((a)=><ArticleCard article={a}/>)}</div></section></BaseLayout>
+<BaseLayout title={`${author}｜作者索引｜Henry Chen 的隨筆`}><header class="page-header wrap"><p class="eyebrow">Author</p><h1>{author}</h1><p>{articles.length} 篇閱讀隨筆</p></header><section class="wrap section"><div class="card-grid">{articles.map((a)=><ArticleCard article={a}/>)}</div></section></BaseLayout>

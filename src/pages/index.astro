@@ -15,9 +15,9 @@ const categoryDescriptions = {
 ---
 <BaseLayout>
   <section class="hero wrap">
-    <p class="eyebrow">Henry Chen 的閱讀隨筆</p>
-    <h1>Henry Chen 的閱讀隨筆</h1>
-    <p class="hero-copy">旅行讓我看見世界，閱讀讓我理解世界，寫作則整理思緒。</p>
+    <p class="eyebrow">閱讀，旅行，聯想。</p>
+    <h1>Henry Chen 的隨筆</h1>
+    <p class="hero-copy">閱讀讓我看見世界，旅行讓我體會世界，寫作助我整理思緒。</p>
   </section>
   <section class="wrap topic-grid" aria-label="主題">
     {categories.map((category) => <a class="topic-card" href={categoryPaths[category]}><h2>{category}</h2><p>{categoryDescriptions[category]}</p></a>)}

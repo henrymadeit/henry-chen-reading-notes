@@ -5,7 +5,7 @@ import type { Article } from '../lib/articles';
 import { categoryPaths, dateFormatter } from '../lib/articles';
 const { article, related } = Astro.props as { article: Article; related: Article[] };
 ---
-<BaseLayout title={`${article.data.title}｜Henry Chen 的閱讀隨筆`} description={article.data.description}>
+<BaseLayout title={`${article.data.title}｜Henry Chen 的隨筆`} description={article.data.description}>
   <article class="article-shell" data-pagefind-body>
     <header class="article-header">
       <a class="eyebrow" href={categoryPaths[article.data.category]}>{article.data.category}</a>
@@ -20,8 +20,8 @@ const { article, related } = Astro.props as { article: Article; related: Article
     </header>
     {article.data.takeaway && (
       <blockquote class="takeaway">
-      <div class="takeaway-title">我的一句話</div>
-      {article.data.takeaway}
+        <div class="takeaway-title">我的一句話</div>
+        {article.data.takeaway}
       </blockquote>
     )}
     <div class="prose"><slot /></div>

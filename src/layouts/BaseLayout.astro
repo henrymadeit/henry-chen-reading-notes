@@ -2,7 +2,7 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles.css';
-const { title = 'Henry Chen 的閱讀隨筆', description = '閱讀、歷史、科技，以及一個橫跨廈門與大稻埕家族的百年記憶。' } = Astro.props;
+const { title = 'Henry Chen 的隨筆', description = '閱讀、歷史、科技，以及一個橫跨廈門與大稻埕家族的百年記憶。' } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
 ---
 <!doctype html>
