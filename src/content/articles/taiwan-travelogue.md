@@ -7,7 +7,8 @@ bookAuthor: 楊双子
 tags: [台灣文學, 殖民, 日治台灣, 小說]
 featured: true
 readingNumber: 12
-takeaway: 真正吸引我的不是飲食，而是人與人間、宗主國與屬地間細微而真實的互動。
+takeaway: 真正吸引我的不是飲食，而是人與人間、宗主國與屬地間細微而真實的互動與記憶。
+cover: /images/covers/taiwan-travelogue.jpg
 ---
 此書買了兩年，曾經開讀，卻嫌它只是介紹台灣食物，節奏又溫吞緩慢而停下。近日再次展書，才發現先前淺薄，我居然遲鈍地忽略了文字後面緩緩湧現的意涵。
 
