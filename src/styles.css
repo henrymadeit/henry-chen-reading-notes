@@ -118,3 +118,16 @@ nav a[aria-current="page"] { color: var(--text); }
   body { background: white; color: black; }
   .article-shell { width: 100%; padding: 0; }
 }
+.prose img {
+  display: block;
+  width: 70%;
+  max-width: 720px;
+  height: auto;
+  margin: 2rem auto;
+}
+
+@media (max-width: 700px) {
+  .prose img {
+    width: 100%;
+  }
+}
