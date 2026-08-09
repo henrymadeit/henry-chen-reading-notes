@@ -25,6 +25,8 @@ cover: /images/covers/oracle-bones-cover.jpg
 
 作者於2010年舉家移居開羅。2019年帶著台裔美籍太太和雙胞胎女兒興高采烈地搬回四川成都。
 
-![何偉](/images/authors/peter-family.jpg)
+![何偉與他的台籍太太，和他們的雙胞胎女兒](/images/authors/peter-family.jpg)
+
+<p class="image-caption">何偉與他的台籍太太，和他們的雙胞胎女兒</p>
 
 但是這時的中國已經不一樣。四川大學的學生舉報他「言論侵犯國家主權」。2021年四川大學不與何偉續聘。他被趕出心愛的中國。
