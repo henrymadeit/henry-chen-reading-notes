@@ -21,9 +21,9 @@ cover: /images/covers/the-buried.png
 
 數千年來埃及有幸，尼羅河ㄧ年一汛，養活人類，創建文明。然而也因此遲滯本土國家組織的發展，無法和外來者競爭。埃及是重要的。她是羅馬，奧斯曼帝國的穀倉，但是文化政治總由外來者主導。第一本埃及史是托勒密王朝希臘人曼涅托寫的。建設開羅的法蒂瑪王朝來自突尼西亞。主流宗教是伊斯蘭。近代蘇彝士運河則是法國人所建。脫離英國獨立後自名「埃及阿拉伯共和國」。國旗上有薩拉丁之鷹，薩拉丁卻是庫德族人。埃及的文化早與古代輝煌歷史脫離，太多外來的成分，本土只是被壓抑的底層。
 
-![埃及革命中的示威群眾](/images/articles/egyptian-revolution.jpg)
+![2011/02/04 亞歷山大的抗議者表達對總統穆巴拉克的反對。Wikimedia Commons](/images/articles/anti-mubarak-protest-in-alexandra.jpg)
 
-<p class="image-caption">埃及革命中的示威群眾</p>
+<p class="image-caption">2011/02/04 亞歷山大的抗議者表達對總統穆巴拉克的反對 - Wikimedia Commons</p>
 
 ## 困境
 

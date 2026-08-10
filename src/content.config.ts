@@ -16,6 +16,7 @@ const articles = defineCollection({
     draft: z.boolean().default(false),
     readingNumber: z.number().int().positive().optional(),
     cover: z.string().optional(),
+    coverCaption: z.string().optional(),
     takeaway: z.string().optional()
   })
 });

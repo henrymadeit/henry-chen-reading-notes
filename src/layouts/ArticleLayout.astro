@@ -27,7 +27,10 @@ const { article, related } = Astro.props as { article: Article; related: Article
 
         {article.data.cover && (
           <div class="article-cover-wrap">
-            <img class="article-cover" src={article.data.cover} alt={`${article.data.title} 書封`} />
+           <img class="article-cover" src={article.data.cover} alt={`${article.data.title} 書封`} />
+           {article.data.coverCaption && (
+            <p class="cover-caption">{article.data.coverCaption}</p>
+            )}
           </div>
         )}
       </div>
