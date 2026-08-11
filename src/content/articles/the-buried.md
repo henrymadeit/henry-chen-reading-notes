@@ -2,7 +2,7 @@
 title: 埃及的革命考古學
 description: 從中國到埃及，何偉見到被埋葬的歷史，觀察一個社會尋找方向。
 published: 2023-11-19
-category: 台灣與世界
+category: 歷史與文明
 bookAuthor: 何偉
 tags:  [埃及, 何偉, 阿拉伯之春, 國家認同]
 featured: true
