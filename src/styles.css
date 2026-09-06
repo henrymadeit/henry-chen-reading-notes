@@ -124,16 +124,17 @@ nav a[aria-current="page"] { color: var(--text); }
   body { background: white; color: black; }
   .article-shell { width: 100%; padding: 0; }
 }
+
 .prose img {
   display: block;
-  width: 70%;
+  width: 90%;
   max-width: 720px;
   height: auto;
   margin: 0.1rem auto;
 }
 
 .prose .image-caption {
-  width: 70%;
+  width: 90%;
   max-width: 720px;
   margin: -1.25rem auto 2rem;
   text-align: center;

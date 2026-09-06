@@ -2,13 +2,13 @@ import type { CollectionEntry } from 'astro:content';
 
 export type Article = CollectionEntry<'articles'>;
 
-export const categories = ['閱讀隨筆', '歷史與文明', '科學與技術', '台灣與世界'] as const;
-// export const categories = ['閱讀隨筆', '歷史與文明', '科學與技術', '台灣與世界', '廈門大稻埕陳氏'] as const;
+export const categories = ['閱讀隨筆', '歷史與文明', '旅遊隨筆', '台灣與世界'] as const;
+// export const categories = ['閱讀隨筆', '歷史與文明', '旅遊隨筆', '台灣與世界', '廈門大稻埕陳氏'] as const;
 
 export const categoryPaths: Record<(typeof categories)[number], string> = {
   '閱讀隨筆': '/reading/',
   '歷史與文明': '/history/',
-  '科學與技術': '/technology/',
+  '旅遊隨筆': '/travel/',
   '台灣與世界': '/taiwan-world/',
   // '廈門大稻埕陳氏': '/chen-family/'
 };
