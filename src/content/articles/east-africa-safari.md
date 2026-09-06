@@ -13,7 +13,7 @@ cover: /images/articles/east-africa-safari/east-africa-safaris-map.png
 Safari 有不同形式。「Game Drive」是搭乘吉普車尋找大型動物；「Boat Safari」搭乘小船探尋河上、岸邊的水鳥與動物；「Balloon Safari」則從空中俯視。身歷其境的「Walking Safari」就挺刺激，但我們並沒有嘗試。
 至於搭乘直升機，飛得太高，看的主要是地貌，看不到什麼飛禽走獸。我有點猶豫，該不該叫作「Chopper Safari」。
 
-![肯亞的馬賽馬拉保護區。照片由 Miss Cynthia Chiueh 慷慨提供照片，特此致謝。](/images/articles/east-africa-safari/east-africa-safaris.png)
+![肯亞的馬賽馬拉保護區。](/images/articles/east-africa-safari/east-africa-safaris.png)
 <p class="image-caption">肯亞的馬賽馬拉保護區裡的遊客與獅子。</p>
 
 ## Safari 之一 草原
