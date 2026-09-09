@@ -35,6 +35,19 @@ const { article, related } = Astro.props as { article: Article; related: Article
         )}
       </div>
     </header>
+
+    {article.data.takeaway && (
+     <div class="article-takeaway">
+      {article.data.takeaway}
+     </div>
+    )}
+
+    {article.data.message && (
+     <div class="article-message">
+      {article.data.message}
+     </div>
+    )}
+
     <div class="prose"><slot /></div>
   </article>
   {related.length > 0 && <aside class="related wrap"><h2>相關文章</h2><div class="card-grid">{related.map((item) => <ArticleCard article={item} compact />)}</div></aside>}

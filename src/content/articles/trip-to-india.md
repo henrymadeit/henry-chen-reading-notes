@@ -2,7 +2,7 @@
 title: 印度之旅：黃金三角與恆河
 description: 2025年的大旅行 [20251226-20260103]
 published: 2026-02-20
-category: 旅遊隨筆
+category: 旅遊記憶
 tags: [印度, 恆河, 泰姬瑪哈, 瓦拉那西]
 featured: true
 cover: /images/articles/trip-to-india/itinerary.png

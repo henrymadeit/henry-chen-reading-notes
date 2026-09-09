@@ -2,7 +2,7 @@
 title: 中國威權之謎：從天安門到習近平的政治邏輯
 description: 從「威權韌性」出發，檢視中國模式長期穩定背後的邏輯。
 published: 2026-07-11
-category: 閱讀隨筆
+category: 歷史與文明
 bookAuthor: 黎安友
 tags: [中國, 極權]
 featured: true

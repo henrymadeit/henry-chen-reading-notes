@@ -5,11 +5,12 @@ import ArticleCard from '../components/ArticleCard.astro';
 import { visibleArticles, categories, categoryPaths } from '../lib/articles';
 const articles = visibleArticles(await getCollection('articles'));
 const featured = articles.filter((a) => a.data.featured).slice(0, 3);
+const pinned = articles.filter((a) => a.data.pinned);
 const latest = articles.slice(0, 6);
 const categoryDescriptions = {
   '閱讀隨筆': '一本書如何改變我理解世界的方式。',
   '歷史與文明': '從帝國、海洋、宗教與地方，理解文明的選擇。',
-  '旅遊隨筆': '遠的或近的，風景與人事，過去以及當下片刻。',
+  '旅遊記憶': '遠的或近的，風景或人事，過去以及當下片刻。',
   '台灣與世界': '從台灣出發，理解世界。',
   // '廈門大稻埕陳氏': '一個家族往返廈門、上海與大稻埕的百年記憶。',
 };
@@ -22,7 +23,28 @@ const categoryDescriptions = {
   </section>
   <section class="wrap topic-grid" aria-label="主題">
     {categories.map((category) => <a class="topic-card" href={categoryPaths[category]}><h2>{category}</h2><p>{categoryDescriptions[category]}</p></a>)}
+  
   </section>
-  {featured.length > 0 && <section class="wrap section"><div class="section-heading"><h2>精選文章</h2></div><div class="card-grid">{featured.map((article) => <ArticleCard article={article} />)}</div></section>}
-  <section class="wrap section"><div class="section-heading"><h2>最新文章</h2><a href="/archive/">查看全部</a></div><div class="card-grid">{latest.map((article) => <ArticleCard article={article} />)}</div></section>
+  {pinned.length > 0 && (
+    <section class="wrap section">
+      <div class="section-heading">
+        <h2>最近新增</h2>
+      </div>
+    
+      <div class="pinned-grid">
+        {pinned.map((article) => <ArticleCard article={article} />)}
+      </div>
+    </section>
+  )}
+  {featured.length > 0 && (
+    <section class="wrap section">
+      <div class="section-heading">
+        <h2>精選文章</h2>
+      </div>
+
+      <div class="card-grid featured-grid">
+        {featured.map((article) => <ArticleCard article={article} />)}
+      </div>
+    </section>
+  )}
 </BaseLayout>
