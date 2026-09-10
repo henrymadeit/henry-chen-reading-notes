@@ -2,6 +2,6 @@
 import { getCollection } from 'astro:content';
 import CategoryPage from '../components/CategoryPage.astro';
 import { visibleArticles } from '../lib/articles';
-const articles = visibleArticles(await getCollection('articles')).filter((a) => a.data.category === '旅遊記憶');
+const articles = visibleArticles(await getCollection('articles')).filter((a) => a.data.category === '行旅與隨想');
 ---
-<CategoryPage title="旅遊記憶" description="遠的或近的，風景或人事、過去以及當下片刻。" articles={articles} />
+<CategoryPage title="行旅與隨想" description="遠的或近的，風景或人事，過去與當下。" articles={articles} />

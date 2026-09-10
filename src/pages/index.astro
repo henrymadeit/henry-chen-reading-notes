@@ -4,13 +4,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 import { visibleArticles, categories, categoryPaths } from '../lib/articles';
 const articles = visibleArticles(await getCollection('articles'));
-const featured = articles.filter((a) => a.data.featured).slice(0, 3);
-const pinned = articles.filter((a) => a.data.pinned);
+const featured = articles.filter((a) => a.data.featured).slice(0, 4);
+const pinned = articles.filter((a) => a.data.pinned).slice(0, 2);
 const latest = articles.slice(0, 6);
 const categoryDescriptions = {
   '閱讀隨筆': '一本書如何改變我理解世界的方式。',
   '歷史與文明': '從帝國、海洋、宗教與地方，理解文明的選擇。',
-  '旅遊記憶': '遠的或近的，風景或人事，過去以及當下片刻。',
+  '行旅與隨想': '遠的或近的，風景或人事，過去與當下。',
   '台灣與世界': '從台灣出發，理解世界。',
   // '廈門大稻埕陳氏': '一個家族往返廈門、上海與大稻埕的百年記憶。',
 };
@@ -31,7 +31,7 @@ const categoryDescriptions = {
         <h2>最近新增</h2>
       </div>
     
-      <div class="pinned-grid">
+      <div class="card-grid">
         {pinned.map((article) => <ArticleCard article={article} />)}
       </div>
     </section>
