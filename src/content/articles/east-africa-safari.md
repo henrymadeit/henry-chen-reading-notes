@@ -4,7 +4,7 @@ description: 2026年的大旅行 [0813-0826]
 published: 2026-09-04
 category: 行旅與隨想
 tags: [東非, 肯亞, 馬賽馬拉, 維多利亞瀑布, Safari]
-featured: falseS
+featured: false
 pinned: true
 cover: /images/articles/east-africa-safari/east-africa-safaris-map.png
 ---

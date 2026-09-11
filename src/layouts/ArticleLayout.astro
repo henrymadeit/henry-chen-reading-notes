@@ -23,11 +23,19 @@ const { article, related } = Astro.props as { article: Article; related: Article
           <div class="tag-row">
             {article.data.tags.map((tag) => <a class="tag" href={`/tags/${encodeURIComponent(tag)}/`}>{tag}</a>)}
           </div>
-        </div>
+          
+          {article.data.note && (
+            <p class="article-note">
+              <span class="note-label">Note:</span> {article.data.note}
+            </p>
+          )}
+          
+          </div>
 
         {article.data.cover && (
           <div class="article-cover-wrap">
            <img class="article-cover" src={article.data.cover} alt={`${article.data.title} 書封`} />
+           
            {article.data.coverCaption && (
             <p class="cover-caption">{article.data.coverCaption}</p>
             )}
@@ -35,18 +43,6 @@ const { article, related } = Astro.props as { article: Article; related: Article
         )}
       </div>
     </header>
-
-    {article.data.takeaway && (
-     <div class="article-takeaway">
-      {article.data.takeaway}
-     </div>
-    )}
-
-    {article.data.message && (
-     <div class="article-message">
-      {article.data.message}
-     </div>
-    )}
 
     <div class="prose"><slot /></div>
   </article>

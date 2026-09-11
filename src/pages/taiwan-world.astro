@@ -4,4 +4,10 @@ import CategoryPage from '../components/CategoryPage.astro';
 import { visibleArticles } from '../lib/articles';
 const articles = visibleArticles(await getCollection('articles')).filter((a) => a.data.category === '台灣與世界');
 ---
-<CategoryPage title="台灣與世界" description="從台灣出發，理解世界。" articles={articles} />
+
+<CategoryPage
+  title="台灣與世界"
+  description="從台灣出發，理解世界。"
+  articles={articles}
+  heroImage="/images/headers/tataocheng.jpg"
+/>

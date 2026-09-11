@@ -6,9 +6,12 @@ category: 閱讀隨筆
 bookAuthor: 譚端
 tags: [台灣, 架空歷史]
 featured: true
-readingNumber: 27
-takeaway: 共產黨統治比國民黨更糟
 cover: /images/covers/tataocheng-sunset.jpg
+coverCaption: 繁體中文版書封面
+//readingNumber: 27
+note: "本書由獨立書店出版，請支持本地作者與出版商。"
+takeaway: 共產黨統治比國民黨更糟 <= takeaway
+message: 共產黨統治比國民黨更糟 <= message
 ---
 
 中文繁體416頁。因余杰的推薦，以及書名有「大稻埕」三字，便直接開讀。赫然發現是本替代歷史（Alternative History）的推理小說。儼然是科幻小說大家PKD（菲利普·狄克）「高堡奇人」的台灣版。

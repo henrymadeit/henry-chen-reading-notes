@@ -39,7 +39,21 @@ nav a { text-decoration: none; color: var(--muted); }
 nav a[aria-current="page"] { color: var(--text); }
 .theme-toggle, .menu-toggle { border: 1px solid var(--line); background: transparent; color: var(--text); border-radius: 999px; padding: .35rem .7rem; cursor: pointer; }
 .menu-toggle { display: none; }
-.hero { padding-block: clamp(3rem, 7vw, 6rem); }
+.hero {
+  padding-block: clamp(3rem, 7vw, 6rem);
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(18, 20, 18, 0.98) 0%,
+      rgba(18, 20, 18, 0.95) 20%,
+      rgba(18, 20, 18, 0.80) 30%,
+      rgba(18, 20, 18, 0.45) 40%,
+      rgba(18, 20, 18, 0.10) 70%,
+      rgba(18, 20, 18, 0) 100%
+    ),
+    url('/images/headers/victoria-falls.jpg') center / cover no-repeat;
+}
 .hero h1 { max-width: 850px; font-size: clamp(2.2rem, 5vw, 4rem); line-height: 1.18; letter-spacing: -.04em; margin: .5rem 0 1.6rem; font-weight: 650; }
 .hero-copy { max-width: 620px; color: var(--muted); font-size: clamp(1.05rem, 2vw, 1.35rem); }
 .eyebrow { color: var(--accent); letter-spacing: .1em; text-transform: uppercase; font-size: .78rem; font-family: system-ui, sans-serif; font-weight: 700; }
@@ -59,28 +73,43 @@ nav a[aria-current="page"] { color: var(--text); }
 .tag-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.2rem; }
 .tag { display: inline-flex; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: .18rem .7rem; text-decoration: none; font-size: .78rem; font-family: system-ui, sans-serif; }
 .page-header { padding-block: clamp(4rem, 9vw, 7rem); border-bottom: 1px solid var(--line); }
+.page-header-hero {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(18, 20, 18, 0.98) 0%,
+      rgba(18, 20, 18, 0.95) 20%,
+      rgba(18, 20, 18, 0.80) 30%,
+      rgba(18, 20, 18, 0.45) 50%,
+      rgba(18, 20, 18, 0.10) 70%,
+      rgba(18, 20, 18, 0) 100%
+    ),
+    var(--hero-image) center / cover no-repeat;
+}
 .page-header h1 { font-size: clamp(2.5rem, 7vw, 5rem); margin: .25rem 0 1rem; line-height: 1.2; }
 .page-header p { max-width: 700px; color: var(--muted); font-size: 1.1rem; }
 .article-shell { width: min(calc(100% - 40px), var(--reading)); margin: auto; padding-block: clamp(4rem, 10vw, 8rem); }
 .article-header { margin-bottom: clamp(3rem, 7vw, 5rem); }
 .article-header h1 { font-size: clamp(2.4rem, 5vw, 3.4rem); line-height: 1.25; letter-spacing: -.025em; margin: .7rem 0 1.2rem; }
-.dek { color: var(--muted); font-size: clamp(1.1rem, 2.4vw, 1.35rem); }
+.dek {
+  color: var(--muted);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.1rem, 2.4vw, 1.35rem);
+  font-weight: 500;
+  line-height: 1.6;
+}
 .article-meta { display: flex; flex-wrap: wrap; gap: .45rem 1rem; color: var(--muted); font-size: .9rem; font-family: system-ui, sans-serif; margin-top: 1.4rem; }
 
-.article-takeaway {
-  margin: 2rem 0 0;
-  padding: 1rem 1.2rem;
-  border-left: 3px solid var(--accent);
-  background: var(--accent-soft);
-  font-weight: 700;
+.article-note {
+  margin: 3.5rem 0 0;
+  font-size: .9rem;
+  line-height: 1.7;
+  color: var(--muted);
+  font-family: system-ui, sans-serif;
 }
 
-.article-message {
-  margin: 1rem 0 0;
-  padding: .8rem 1rem;
-  border: 1px solid var(--line);
-  color: var(--muted);
-  font-size: .95rem;
+.note-label {
+  font-weight: 600;
 }
 
 .prose { font-size: clamp(1.05rem, 1.7vw, 1.18rem); }

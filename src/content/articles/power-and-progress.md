@@ -1,13 +1,13 @@
 ---
 title: 權力與進步：科技變革與共享繁榮之間的千年辯證
-description: 創新帶來。
+description: 創新帶來的善或惡其實並不那麼清晰。
 published: 2025-04-11
 category: 歷史與文明
 bookAuthor: 戴倫．艾塞默魯 和 賽門．強森
 tags: [文明進化, 地中海]
 featured: true
 readingNumber: 13
-takeaway: 諾貝爾光環S
+takeaway: 諾貝爾光環
 cover: /images/covers/power-and-progress.jpg
 ---
 
