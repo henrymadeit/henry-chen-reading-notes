@@ -8,14 +8,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <noscript>請啟用 JavaScript 使用全文搜尋。</noscript>
   </section>
   <link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
-  <script is:inline>
-    window.addEventListener('DOMContentLoaded', async () => {
-      try {
-        const { PagefindUI } = await import('/pagefind/pagefind-ui.js');
-        new PagefindUI({ element: '#search', showSubResults: true, translations: { placeholder: '搜尋文章…', zero_results: '沒有符合「[SEARCH_TERM]」的文章', clear_search: '清除' } });
-      } catch (error) {
-        document.querySelector('#search').innerHTML = '<p class="quiet">搜尋索引會在執行 npm run build 後產生。</p>';
+
+<script is:inline src="/pagefind/pagefind-ui.js"></script>
+
+<script is:inline>
+  window.addEventListener('DOMContentLoaded', () => {
+    new PagefindUI({
+      element: '#search',
+      showSubResults: true,
+      translations: {
+        placeholder: '搜尋文章…',
+        zero_results: '沒有符合「[SEARCH_TERM]」的文章'
       }
     });
-  </script>
+  });
+</script>
 </BaseLayout>
