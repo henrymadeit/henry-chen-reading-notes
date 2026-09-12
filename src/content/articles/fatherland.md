@@ -6,8 +6,8 @@ category: 閱讀隨筆
 bookAuthor: 羅伯特·哈里斯
 tags: [架空歷史, 納粹, 推理, 國家, 猶太人]
 featured: true
-readingNumber: 9
-takeaway: 你我都可能是猶太人
+//readingNumber: 9
+//takeaway: 你我都可能是猶太人
 cover: /images/articles/fatherland/fatherland-cover-chinese.jpg
 coverCaption: 簡體中文版書封面
 ---

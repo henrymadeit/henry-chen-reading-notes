@@ -5,9 +5,9 @@ published: 2023-12-11
 category: 歷史與文明
 bookAuthor: 何偉
 tags:  [中國, 何偉, 社會, 考古]
-featured: true
-readingNumber: 44
-takeaway: 後接埃及的革命考古學
+featured: false
+//readingNumber: 44
+//takeaway: 後接埃及的革命考古學
 cover: /images/covers/oracle-bones-cover.jpg
 ---
 

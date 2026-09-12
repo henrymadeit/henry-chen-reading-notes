@@ -5,9 +5,8 @@ published: 2023-05-16
 category: 閱讀隨筆
 bookAuthor: 溫斯頓·邱吉爾
 tags: [歐洲, 大英帝國, 帝國主義]
-featured: true
-takeaway: takeaway here
-message: message here
+featured: false
+//takeaway: takeaway here
 cover: /images/articles/the-world-crises/cover-world-crises.gif
 coverCaption: 英文版書封面
 ---

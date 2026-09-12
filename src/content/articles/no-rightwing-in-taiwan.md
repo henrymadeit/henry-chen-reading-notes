@@ -4,7 +4,7 @@ description: 我不知道我們其實是左派...
 published: 2026-08-30
 category: 台灣與世界
 tags:  [右派, 左派, 平等, 進步]
-featured: false
+featured: true
 //message: 豈止如此，台灣恐怕永遠不會有右派
 pinned: true
 cover: /images/covers/cover-no-rightwing.jpg

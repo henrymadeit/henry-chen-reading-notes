@@ -6,8 +6,8 @@ category: 歷史與文明
 bookAuthor: 查爾斯·弗里曼
 tags: [海洋文明, 世界史, 地中海]
 featured: true
-readingNumber: 10
-takeaway: 歐洲之前的地中海
+//readingNumber: 10
+//takeaway: 歐洲之前的地中海
 cover: /images/covers/egypt-greece-rome.jpg
 coverCaption: 英文版書封面
 ---

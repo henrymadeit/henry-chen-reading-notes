@@ -5,9 +5,9 @@ published: 2025-03-23
 category: 歷史與文明
 bookAuthor: 余杰
 tags: [外交, 美國, 霸權, 中國]
-featured: true
-readingNumber: 11
-takeaway: 難道美國變心，不要我們了嗎?
+featured: false
+//readingNumber: 11
+//takeaway: 難道美國變心，不要我們了嗎?
 cover: /images/covers/usa-100-years.jpg
 coverCaption: 中文版書封面
 ---
