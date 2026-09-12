@@ -1,6 +1,6 @@
 ---
 title: 甲骨文：一次占卜當代中國的旅程
-description: 何偉筆下的中國，以及二十年間中國與外部世界關係的變化。
+description: 何偉筆下的中國，以及二十年間中國與外部世界關係的變化
 published: 2023-12-11
 category: 歷史與文明
 bookAuthor: 何偉

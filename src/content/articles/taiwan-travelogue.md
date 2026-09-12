@@ -1,14 +1,16 @@
 ---
 title: 台灣漫遊錄
-description: 文字表面是日治台灣的美食旅行，背後卻緩緩湧現殖民地人民的順從、討好與無奈。
+description: 文字表面是日治台灣的美食旅行，背後卻緩緩湧現殖民地人民的順從、討好與無奈
 published: 2026-07-17
 category: 閱讀隨筆
 bookAuthor: 楊双子
 tags: [台灣文學, 殖民, 日治台灣, 小說]
 featured: true
-readingNumber: 12
-takeaway: 真正吸引我的不是飲食，而是人與人間、宗主國與屬地間細微而真實的互動與記憶。
+note: -本書由春山出版社出版，請支持本土作者與在地出版事業-
+//readingNumber: 12
+//takeaway: 真正吸引我的不是飲食，而是人與人間、宗主國與屬地間細微而真實的互動與記憶。
 cover: /images/covers/taiwan-travelogue.jpg
+coverCaption: 繁體中文版書封面
 ---
 
 **有心看此書的讀友請不要在閱前讀我這篇隨筆，干擾你的一手閱讀經驗**

@@ -46,13 +46,13 @@ nav a[aria-current="page"] { color: var(--text); }
     linear-gradient(
       90deg,
       rgba(18, 20, 18, 0.98) 0%,
-      rgba(18, 20, 18, 0.95) 20%,
-      rgba(18, 20, 18, 0.80) 30%,
-      rgba(18, 20, 18, 0.45) 40%,
+      rgba(18, 20, 18, 0.95) 5%,
+      rgba(18, 20, 18, 0.80) 20%,
+      rgba(18, 20, 18, 0.45) 50%,
       rgba(18, 20, 18, 0.10) 70%,
       rgba(18, 20, 18, 0) 100%
     ),
-    url('/images/headers/victoria-falls.jpg') center / cover no-repeat;
+    url('/images/headers/sunset-naivasha.jpg') center / cover no-repeat;
 }
 .hero h1 { max-width: 850px; font-size: clamp(2.2rem, 5vw, 4rem); line-height: 1.18; letter-spacing: -.04em; margin: .5rem 0 1.6rem; font-weight: 650; }
 .hero-copy { max-width: 620px; color: var(--muted); font-size: clamp(1.05rem, 2vw, 1.35rem); }
@@ -108,10 +108,6 @@ nav a[aria-current="page"] { color: var(--text); }
   font-family: system-ui, sans-serif;
 }
 
-.note-label {
-  font-weight: 600;
-}
-
 .prose { font-size: clamp(1.05rem, 1.7vw, 1.18rem); }
 .prose h2 { margin: 3.5rem 0 1rem; font-size: 1.75em; line-height: 1.45; }
 .prose h3 { margin: 2.5rem 0 .8rem; font-size: 1.35em; }
@@ -145,7 +141,7 @@ nav a[aria-current="page"] { color: var(--text); }
   padding-top: 1rem;
 }
 .article-cover {
-  width: 100%;
+  width: 95%;
   height: auto;
   display: block;
 }
@@ -157,6 +153,10 @@ nav a[aria-current="page"] { color: var(--text); }
 }
 @media (max-width: 820px) {
   .article-header-grid { grid-template-columns: 1fr; }
+  .article-cover {
+       width: 95%;
+       margin-inline: auto;
+   }
   .header-inner { min-height: 62px; flex-wrap: wrap; padding-block: .65rem; }
   .menu-toggle { display: inline-flex; margin-left: auto; }
   .theme-toggle { order: 3; }
@@ -174,7 +174,7 @@ nav a[aria-current="page"] { color: var(--text); }
 
 .prose img {
   display: block;
-  width: 90%;
+  width: 85%;
   max-width: 720px;
   height: auto;
   margin: 0.1rem auto;

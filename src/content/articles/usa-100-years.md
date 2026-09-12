@@ -1,6 +1,6 @@
 ---
 title: 美國百年外交大敗局：從一戰到俄羅斯侵略烏克蘭，美國外交政策為何總是事與願違？
-description: 從少年茁壯到承擔世界紛爭的挑戰。
+description: 從少年茁壯到承擔世界紛爭的挑戰
 published: 2025-03-23
 category: 歷史與文明
 bookAuthor: 余杰

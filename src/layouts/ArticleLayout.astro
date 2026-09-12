@@ -26,7 +26,7 @@ const { article, related } = Astro.props as { article: Article; related: Article
           
           {article.data.note && (
             <p class="article-note">
-              <span class="note-label">Note:</span> {article.data.note}
+             {article.data.note}
             </p>
           )}
           

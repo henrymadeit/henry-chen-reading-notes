@@ -1,6 +1,6 @@
 ---
 title: 大稻埕落日
-description: 架空歷史的1963年，一個不一樣的大稻埕。
+description: 架空歷史的1963年，一個不一樣的大稻埕
 published: 2024-07-19
 category: 閱讀隨筆
 bookAuthor: 譚端
@@ -9,7 +9,7 @@ featured: true
 cover: /images/covers/tataocheng-sunset.jpg
 coverCaption: 繁體中文版書封面
 //readingNumber: 27
-note: "本書由獨立書店出版，請支持本地作者與出版商。"
+note: -本書由春山出版社出版，請支持本土作者與在地出版事業-
 takeaway: 共產黨統治比國民黨更糟 <= takeaway
 message: 共產黨統治比國民黨更糟 <= message
 ---

@@ -1,6 +1,6 @@
 ---
 title: 無垠之海：全球海洋人文史
-description: 從港口、季風與交換，理解海洋網絡如何連接文明。
+description: 從港口、季風與交換，理解海洋網絡如何連接文明
 published: 2026-07-06
 category: 歷史與文明
 bookAuthor: 大衛．阿布拉菲雅

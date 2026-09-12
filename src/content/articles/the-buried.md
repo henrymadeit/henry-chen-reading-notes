@@ -1,6 +1,6 @@
 ---
 title: 埃及的革命考古學
-description: 從中國到埃及，何偉見到被埋葬的歷史，觀察一個社會尋找方向。
+description: 從中國到埃及，何偉見到被埋葬的歷史，觀察一個社會尋找方向
 published: 2023-11-19
 category: 歷史與文明
 bookAuthor: 何偉
@@ -9,6 +9,7 @@ featured: true
 readingNumber: 41
 takeaway: 從中國到埃及，何偉繼續觀察一個社會如何尋找自己的方向。
 cover: /images/covers/the-buried.png
+coverCaption: 繁體中文版書封面
 ---
 
 ## 革命的考古
