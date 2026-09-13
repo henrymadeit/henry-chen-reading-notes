@@ -1,13 +1,23 @@
 ---
 import { getCollection, render } from 'astro:content';
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import LikeButton from '../../components/LikeButton.astro';
 import { relatedArticles, visibleArticles } from '../../lib/articles';
+
 export async function getStaticPaths() {
   const all = visibleArticles(await getCollection('articles'));
-  return all.map((article) => ({ params: { id: article.id }, props: { article, all } }));
+  return all.map((article) => ({
+    params: { id: article.id },
+    props: { article, all }
+  }));
 }
+
 const { article, all } = Astro.props;
 const { Content } = await render(article);
 const related = relatedArticles(article, all);
 ---
-<ArticleLayout article={article} related={related}><Content /></ArticleLayout>
+
+<ArticleLayout article={article} related={related}>
+  <Content />
+  <LikeButton slug={article.id} />
+</ArticleLayout>

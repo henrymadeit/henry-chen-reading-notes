@@ -122,7 +122,7 @@ nav a[aria-current="page"] { color: var(--text); }
       rgba(18, 20, 18, 0.10) 70%,
       rgba(18, 20, 18, 0) 100%
     ),
-    url('/images/headers/search.jpg') center / cover no-repeat;
+    url('/images/headers/search.jpg') center / 90% auto no-repeat;
 }
 
 .dek {

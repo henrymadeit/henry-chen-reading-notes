@@ -1,0 +1,13 @@
+{
+  "name": "henryreads",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-09-13",
+
+  "d1_databases": [
+    {
+      "binding": "henryreads_likes",
+      "database_name": "henryreads-likes",
+      "database_id": "224afeb8-2809-49f9-b672-43535e64b784"
+    }
+  ]
+}

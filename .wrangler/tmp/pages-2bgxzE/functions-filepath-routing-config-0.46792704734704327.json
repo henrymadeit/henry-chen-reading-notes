@@ -1,0 +1,21 @@
+{
+  "routes": [
+    {
+      "routePath": "/api/likes/:slug",
+      "mountPath": "/api/likes",
+      "method": "GET",
+      "module": [
+        "api/likes/[slug].ts:onRequestGet"
+      ]
+    },
+    {
+      "routePath": "/api/likes/:slug",
+      "mountPath": "/api/likes",
+      "method": "POST",
+      "module": [
+        "api/likes/[slug].ts:onRequestPost"
+      ]
+    }
+  ],
+  "baseURL": "/"
+}

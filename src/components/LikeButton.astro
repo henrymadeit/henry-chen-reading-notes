@@ -1,0 +1,155 @@
+---
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+---
+
+<div class="like-area">
+  <span class="like-prompt">如果覺得不錯，請按</span>
+
+  <button
+    class="like-button"
+    data-like-button
+    data-slug={slug}
+    type="button"
+    aria-label="按讚"
+  >
+    <span class="like-heart">♡</span>
+    <span class="like-count">(0)</span>
+  </button>
+</div>
+
+<div class="contact-line">
+  歡迎交流：
+  <a href="mailto:henryreads.pages@gmail.com">
+    henryreads.pages@gmail.com
+  </a>
+</div>
+
+<script>
+  const buttons = document.querySelectorAll("[data-like-button]");
+
+  buttons.forEach(async (button) => {
+    if (!(button instanceof HTMLButtonElement)) return;
+
+    const slug = button.dataset.slug;
+    if (!slug) return;
+
+    const heart = button.querySelector(".like-heart");
+    const count = button.querySelector(".like-count");
+
+    const storageKey = `liked:${slug}`;
+    const liked = localStorage.getItem(storageKey) === "true";
+
+    if (liked) {
+      if (heart) heart.textContent = "♥";
+      button.classList.add("liked");
+    }
+
+    try {
+      const response = await fetch(`/api/likes/${encodeURIComponent(slug)}`);
+      const data = await response.json();
+
+      if (count) {
+       count.textContent = `(${data.likes ?? 0})`;
+      }
+    } catch (error) {
+      console.error("Unable to load likes:", error);
+    }
+
+    button.addEventListener("click", async () => {
+      if (localStorage.getItem(storageKey) === "true") return;
+
+      button.disabled = true;
+
+      try {
+        const response = await fetch(
+          `/api/likes/${encodeURIComponent(slug)}`,
+          { method: "POST" }
+        );
+
+        const data = await response.json();
+
+        if (count) {
+          count.textContent = `(${data.likes ?? 0})`;
+        }
+
+        if (heart) {
+          heart.textContent = "♥";
+        }
+
+        button.classList.add("liked");
+        localStorage.setItem(storageKey, "true");
+      } catch (error) {
+        console.error("Unable to add like:", error);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
+</script>
+
+<style>
+.like-area {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.like-prompt {
+  opacity: 0.7;
+}
+  .like-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    opacity: 0.7;
+  }
+
+  .like-button:hover {
+    opacity: 1;
+  }
+
+  .like-heart {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .like-button.liked .like-heart {
+    color: #c94a4a;
+  }
+
+.like-area {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.like-prompt {
+  opacity: 0.75;
+}
+
+.contact-line {
+  margin-top: 0.35rem;
+  opacity: 0.72;
+  font-size: 0.9em;
+}
+
+.contact-line a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.contact-line a:hover {
+  text-decoration: underline;
+}
+</style>
