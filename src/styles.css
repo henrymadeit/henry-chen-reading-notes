@@ -91,6 +91,40 @@ nav a[aria-current="page"] { color: var(--text); }
 .article-shell { width: min(calc(100% - 40px), var(--reading)); margin: auto; padding-block: clamp(4rem, 10vw, 8rem); }
 .article-header { margin-bottom: clamp(3rem, 7vw, 5rem); }
 .article-header h1 { font-size: clamp(2.4rem, 5vw, 3.4rem); line-height: 1.25; letter-spacing: -.025em; margin: .7rem 0 1.2rem; }
+
+.article-shell:has(.about-hero) {
+  padding-top: 6rem;
+}
+.about-hero {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(18, 20, 18, 0.98) 0%,
+      rgba(18, 20, 18, 0.95) 20%,
+      rgba(18, 20, 18, 0.80) 30%,
+      rgba(18, 20, 18, 0.45) 50%,
+      rgba(18, 20, 18, 0.10) 70%,
+      rgba(18, 20, 18, 0) 100%
+    ),
+    url('/images/headers/about.jpg') center / cover no-repeat;
+
+  padding: clamp(3rem, 7vw, 5rem);
+}
+
+.search-hero {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(18, 20, 18, 0.98) 0%,
+      rgba(18, 20, 18, 0.95) 20%,
+      rgba(18, 20, 18, 0.80) 30%,
+      rgba(18, 20, 18, 0.45) 50%,
+      rgba(18, 20, 18, 0.10) 70%,
+      rgba(18, 20, 18, 0) 100%
+    ),
+    url('/images/headers/search.jpg') center / cover no-repeat;
+}
+
 .dek {
   color: var(--muted);
   font-family: Georgia, "Times New Roman", serif;

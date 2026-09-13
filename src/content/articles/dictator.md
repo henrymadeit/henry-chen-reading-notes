@@ -4,12 +4,12 @@ description: 從天真年少到冷酷精明，不變的是對理念的堅持
 published: 2025-07-17
 category: 閱讀隨筆
 bookAuthor: 羅伯特·哈里斯
-tags: [前歐洲, 西塞羅, 凱撒, 羅馬共和]
+tags: [前歐洲, 西塞羅, 凱撒]
 featured: false
 //readingNumber: 23
 //takeaway: 讓我們清清嗓子，開始演講
 cover: /images/covers/dictator.jpg
-coverCaption: 英文版書封面
+coverCaption: 英文版封面
 ---
 
 簡中378頁電子版。好看的歷史小說，說西塞羅最後15年的故事。
@@ -23,7 +23,6 @@ coverCaption: 英文版書封面
 讀此書真是幸事。我幾乎要相信它是歷史而不是小說。全書以西塞羅秘書提羅的第一人稱寫成，貼身的描述更顯主人翁的立體與傳神。西塞羅帶著文青氣質，理想高遠，言語犀利但有時詼諧甚至輕佻。他是位語言型的政治人物，說與寫的能力強於實際行動力，像春秋時代的孔子：懷著滿滿復古理想卻無法改變現況，只成為記憶與歷史道德制高點的孤零燈火。我喜歡書中的凱撒，冷靜自信，寬容慷慨，豪邁能幹又少言（直到死前兩年變得浮誇武斷）。最後幾章出現的政治神童屋大維冷酷精明，隱密低調。他無所牽掛，見佛殺佛，是個令人不寒而慄的角色。
 
 ![奧古斯都·凱撒雕像，羅浮宮 - Wikimedia Commons](/images/articles/augustus.png)
-
-<p class="image-caption">2奧古斯都·凱撒雕像，羅浮宮  - Wikimedia Commons</p>
+<p class="image-caption">奧古斯都·凱撒雕像，羅浮宮  - Wikimedia Commons</p>
 
 「獨裁者」是我讀哈里斯的第三本書。他是作家朋友Tommy推薦的英國小說家。「 獨裁者」是他「西塞羅三部曲」的第三部。不幸的是前兩本「最高權力」與「權謀之業」的中文版都絕版。我昨天找到英文版，從第一冊再讀起。

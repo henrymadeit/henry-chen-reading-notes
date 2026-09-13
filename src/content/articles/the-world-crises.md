@@ -8,7 +8,7 @@ tags: [歐洲, 大英帝國, 帝國主義]
 featured: false
 //takeaway: takeaway here
 cover: /images/articles/the-world-crises/cover-world-crises.gif
-coverCaption: 英文版書封面
+coverCaption: 英文版封面
 ---
 
 邱吉爾是大政治家，二戰時帶領英國打敗納粹。可能有人不知道他文采好，好到在1953年以「第二次世界大戰回憶錄」得諾貝爾文學獎。那這本 「第一次世界大戰回憶錄」又是怎麼回事? 

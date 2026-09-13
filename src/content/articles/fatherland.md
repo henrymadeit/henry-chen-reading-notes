@@ -9,7 +9,7 @@ featured: true
 //readingNumber: 9
 //takeaway: 你我都可能是猶太人
 cover: /images/articles/fatherland/fatherland-cover-chinese.jpg
-coverCaption: 簡體中文版書封面
+coverCaption: 簡體中文版封面
 ---
 
 ## 如果納粹並未戰敗

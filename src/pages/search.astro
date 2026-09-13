@@ -1,26 +1,43 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
+
 <BaseLayout title="全文搜尋｜Henry Chen 的隨筆">
-  <header class="page-header wrap"><p class="eyebrow">Search</p><h1>全文搜尋</h1><p>搜尋書名、作者、人物、年代、文明與標籤。</p></header>
+
+  <header class="page-header wrap search-hero">
+    <p class="eyebrow">Search</p>
+    <h1>全文搜尋</h1>
+    <p>搜尋書名、作者、人物、年代、文明與標籤。</p>
+  </header>
+
   <section class="wrap search-box">
     <div id="search"></div>
-    <noscript>請啟用 JavaScript 使用全文搜尋。</noscript>
+    <noscript>
+      請啟用 JavaScript 使用全文搜尋。
+    </noscript>
   </section>
-  <link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
 
-<script is:inline src="/pagefind/pagefind-ui.js"></script>
+  <link
+    href="/pagefind/pagefind-ui.css"
+    rel="stylesheet"
+  />
 
-<script is:inline>
-  window.addEventListener('DOMContentLoaded', () => {
-    new PagefindUI({
-      element: '#search',
-      showSubResults: true,
-      translations: {
-        placeholder: '搜尋文章…',
-        zero_results: '沒有符合「[SEARCH_TERM]」的文章'
-      }
+  <script
+    is:inline
+    src="/pagefind/pagefind-ui.js"
+  ></script>
+
+  <script is:inline>
+    window.addEventListener('DOMContentLoaded', () => {
+      new PagefindUI({
+        element: '#search',
+        showSubResults: true,
+        translations: {
+          placeholder: '搜尋文章…',
+          zero_results: '沒有符合「SEARCH_TERM」的文章'
+        }
+      });
     });
-  });
-</script>
+  </script>
+
 </BaseLayout>

@@ -9,6 +9,7 @@ featured: false
 //readingNumber: 11
 //takeaway: 余杰說是極權不是威權
 cover: /images/covers/puzzle-of-chinese-authoritarianism.jpg
+coverCaption: 繁體中文版封面
 ---
 
 美國漢學家黎安友2021年的著作。他問一個問題：新中國崛起，怎麼沒有崩壞，這個威權韌性（Authoritarian Resilience) 是怎麼回事？

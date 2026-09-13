@@ -10,7 +10,7 @@ note: -本書由春山出版社出版，請支持本土作者與在地出版事�
 //readingNumber: 12
 //takeaway: 真正吸引我的不是飲食，而是人與人間、宗主國與屬地間細微而真實的互動與記憶。
 cover: /images/covers/taiwan-travelogue.jpg
-coverCaption: 繁體中文版書封面
+coverCaption: 繁體中文版封面
 ---
 
 **有心看此書的讀友請不要在閱前讀我這篇隨筆，干擾你的一手閱讀經驗**

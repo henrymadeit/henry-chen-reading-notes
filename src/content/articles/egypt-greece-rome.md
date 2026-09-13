@@ -9,7 +9,7 @@ featured: true
 //readingNumber: 10
 //takeaway: 歐洲之前的地中海
 cover: /images/covers/egypt-greece-rome.jpg
-coverCaption: 英文版書封面
+coverCaption: 英文版封面
 ---
 
 作者是英國主攻希臘與羅馬史的學者。此書是他的重要著作之一。從5,000年前近東開始寫到埃及，漸至東地中海周圍的黎凡特，希臘，羅馬，以君士坦丁堡為都的拜占庭帝國，直到穆斯林興起為止。全書936頁，我讀得辛苦，但是補足我歷史認知的一些不足。

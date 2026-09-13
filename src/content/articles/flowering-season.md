@@ -9,7 +9,7 @@ featured: true
 note: -本書由春山出版社出版，請支持本土作者與在地出版事業-
 //readingNumber: 13
 cover: /images/covers/flowering-season.jpg
-coverCaption: 繁體中文版書封面
+coverCaption: 繁體中文版封面
 ---
 
 先前讀完［台灣漫遊錄］，隨後拿起這本楊双子以戰前台灣為背景的少女小說。

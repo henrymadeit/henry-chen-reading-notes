@@ -9,7 +9,7 @@ featured: false
 //readingNumber: 41
 //takeaway: 從中國到埃及，何偉繼續觀察一個社會如何尋找自己的方向。
 cover: /images/covers/the-buried.png
-coverCaption: 繁體中文版書封面
+coverCaption: 繁體中文版封面
 ---
 
 ## 革命的考古

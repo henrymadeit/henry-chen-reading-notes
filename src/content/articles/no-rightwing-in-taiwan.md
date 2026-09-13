@@ -1,6 +1,6 @@
 ---
 title: 台灣為什麼沒有右派?
-description: 我不知道我們其實是左派...
+description: 天然左 - 你不知道你其實是左派
 published: 2026-08-30
 category: 台灣與世界
 tags:  [右派, 左派, 平等, 進步]

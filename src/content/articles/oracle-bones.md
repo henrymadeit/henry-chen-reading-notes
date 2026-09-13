@@ -9,6 +9,7 @@ featured: false
 //readingNumber: 44
 //takeaway: 後接埃及的革命考古學
 cover: /images/covers/oracle-bones-cover.jpg
+coverCaption: 繁體中文版封面
 ---
 
 中文繁體576頁。我讀了「埃及的革命考古學」後，去找作者之前寫的書來讀。這本2006年出版的「甲骨文」是他「中國紀實三部曲」的第二部（第ㄧ部是2001「消失的江城」，第三部是2010「尋路中國」）。本書獲美國國家圖書獎，但在始終未能在中國出版。

@@ -9,7 +9,7 @@ featured: true
 //readingNumber: 10
 //takeaway: 除了地中海以外的海洋
 cover: /images/covers/boundless-sea.jpg
-coverCaption: 英文版書封面
+coverCaption: 英文版封面
 ---
 
 1,320頁的大書。作者在他之前「偉大的海」（全書968頁，阿布拉菲雅似乎習慣寫這種磚塊般的大書🙄）中討論地中海地區的人文史。這次談及地中海以外海洋世界的歷史，以及全球海洋網絡的建立。

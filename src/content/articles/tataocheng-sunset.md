@@ -7,7 +7,7 @@ bookAuthor: 譚端
 tags: [台灣, 架空歷史]
 featured: true
 cover: /images/covers/tataocheng-sunset.jpg
-coverCaption: 繁體中文版書封面
+coverCaption: 繁體中文版封面
 //readingNumber: 27
 note: -本書由春山出版社出版，請支持本土作者與在地出版事業-
 takeaway: 共產黨統治比國民黨更糟 <= takeaway

@@ -9,7 +9,7 @@ featured: false
 //readingNumber: 13
 //takeaway: 諾貝爾光環
 cover: /images/covers/power-and-progress.jpg
-coverCaption: 英文版書封面
+coverCaption: 英文版封面
 ---
 中文繁體684頁。朋友送我這本英文版的書。我又買了繁中電子版。書中討論集中於創新及其對人類的影響。
 
