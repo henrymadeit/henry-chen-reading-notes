@@ -39,6 +39,7 @@ nav a { text-decoration: none; color: var(--muted); }
 nav a[aria-current="page"] { color: var(--text); }
 .theme-toggle, .menu-toggle { border: 1px solid var(--line); background: transparent; color: var(--text); border-radius: 999px; padding: .35rem .7rem; cursor: pointer; }
 .menu-toggle { display: none; }
+
 .hero {
   padding-block: clamp(3rem, 7vw, 6rem);
 
@@ -108,7 +109,8 @@ nav a[aria-current="page"] { color: var(--text); }
     ),
     url('/images/headers/about.jpg') center / cover no-repeat;
 
-  padding: clamp(3rem, 7vw, 5rem);
+  padding-block: clamp(3rem, 7vw, 5rem);
+  padding-inline: clamp(1.5rem, 4vw, 50px);
 }
 
 .search-hero {
@@ -123,6 +125,42 @@ nav a[aria-current="page"] { color: var(--text); }
       rgba(18, 20, 18, 0) 100%
     ),
     url('/images/headers/search.jpg') center / 90% auto no-repeat;
+}
+
+/* Hero 文字在明暗模式下都保持亮色 */
+.hero h1,
+.hero .hero-copy,
+.hero .hero-message,
+.hero .hero-message a,
+.page-header-hero h1,
+.page-header-hero p,
+.about-hero h1,
+.about-hero p,
+.search-hero h1,
+.search-hero p {
+  color: #f5f3ed;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+}
+
+/* Hero 文字與圖片邊緣保持距離 */
+.hero,
+.page-header-hero,
+.search-hero {
+  padding-inline: clamp(1.5rem, 4vw, 50px);
+}
+
+/* 統一各頁 Hero 標題大小 */
+.hero h1,
+.page-header-hero h1,
+.about-hero h1,
+.search-hero h1 {
+  font-size: clamp(2.2rem, 6vw, 4rem);
+}
+
+/* Section Hero 文字稍微上移，總高度維持不變 */
+.page-header-hero {
+  padding-top: calc(clamp(3.5rem, 8vw, 5.5rem) + 5px);
+  padding-bottom: calc(clamp(4.5rem, 10vw, 8.5rem) - 5px);
 }
 
 .dek {
@@ -140,6 +178,12 @@ nav a[aria-current="page"] { color: var(--text); }
   line-height: 1.7;
   color: var(--muted);
   font-family: system-ui, sans-serif;
+}
+
+/* Search Hero 文字稍微上移，總高度維持不變 */
+.search-hero {
+  padding-top: calc(clamp(4rem, 9vw, 7rem) - 10px);
+  padding-bottom: calc(clamp(4rem, 9vw, 7rem) + 10px);
 }
 
 .prose { font-size: clamp(1.05rem, 1.7vw, 1.18rem); }
