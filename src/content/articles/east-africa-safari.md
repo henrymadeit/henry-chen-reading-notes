@@ -70,7 +70,8 @@ Safari 有不同形式。「Game Drive」是搭乘吉普車尋找大型動物；
 ![吵醒的獅子](/images/articles/east-africa-safari/east-africa-wake-up-lion.png)
 <p class="image-caption">被關門聲驚醒的公獅。</p>
 
-我們告訴司機先生：「手機掉在獅子那裏…」。他一驚，硬著頭皮將吉普車繞一圈開回，慢慢地接近，小心翼翼地打開車門，伸手撿起手機。獅子一直睡著，直到門砰一聲關起來才被驚醒。牠抬頭瞪我們一眼。
+我們告訴司機先生：「手機掉在獅子那裏…」。他一驚，硬著頭皮將吉普車繞一圈開回，慢慢地接近，小心翼翼地打開車門，伸手撿起手機。獅子一直睡著，直到門砰一聲關起來才被驚醒，抬頭瞪我們一眼。
+
 事後趕緊給司機先生10元小費壓壓驚。
 
 ![遊獵結尾](/images/articles/east-africa-safari/east-africa-safaris-end.png)

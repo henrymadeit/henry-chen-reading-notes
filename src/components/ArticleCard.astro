@@ -1,13 +1,68 @@
 ---
 import type { Article } from '../lib/articles';
 import { dateFormatter } from '../lib/articles';
-const { article, compact = false } = Astro.props as { article: Article; compact?: boolean };
+const { article, compact = false, showLikes = false } = Astro.props as { article: Article; compact?: boolean; showLikes?: boolean };
 ---
 <article class:list={['article-card', { compact }]}>
-  <p class="eyebrow">{article.data.category} · {dateFormatter.format(article.data.published)}</p>
+  <p class="eyebrow">
+  {article.data.category} · {dateFormatter.format(article.data.published)}
+</p>
   <h2><a href={`/articles/${article.id}/`}>{article.data.title}</a></h2>
   {!compact && <p>{article.data.description}</p>}
-  <div class="tag-row">
-    {article.data.tags.slice(0, compact ? 2 : 4).map((tag) => <a class="tag" href={`/tags/${encodeURIComponent(tag)}/`}>{tag}</a>)}
-  </div>
+<div class="tag-row">
+  {article.data.tags.slice(0, compact ? 2 : 4).map((tag) => (
+    <a class="tag" href={`/tags/${encodeURIComponent(tag)}/`}>{tag}</a>
+  ))}
+</div>
+
+  {showLikes && (
+    <span data-card-like-count="" data-slug={article.id}>♥ 0</span>
+  )}
+
 </article>
+
+<style>
+  .article-card {
+    position: relative;
+  }
+
+  .tag-row {
+    padding-right: 3.5rem;
+  }
+
+  [data-card-like-count] {
+    position: absolute;
+    right: 2rem;
+    bottom: 2rem;
+    min-width: 2.5rem;
+    text-align: right;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #c76b7a;
+    white-space: nowrap;
+  }
+</style>
+
+<script>
+  const likeCounts = document.querySelectorAll("[data-card-like-count]");
+
+  likeCounts.forEach(async (element) => {
+    if (!(element instanceof HTMLElement)) return;
+
+    const slug = element.dataset.slug;
+    if (!slug) return;
+
+    try {
+      const response = await fetch(
+        `/api/likes/${encodeURIComponent(slug)}`
+      );
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+      element.textContent = `♥ ${data.likes ?? 0}`;
+    } catch (error) {
+      console.error("Unable to load card likes:", error);
+    }
+  });
+</script>
