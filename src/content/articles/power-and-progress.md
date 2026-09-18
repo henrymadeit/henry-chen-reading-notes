@@ -6,6 +6,7 @@ category: 歷史與文明
 bookAuthor: 戴倫．艾塞默魯 和 賽門．強森
 tags: [文明進化, 地中海]
 featured: false
+draft: true
 //readingNumber: 13
 //takeaway: 諾貝爾光環
 cover: /images/covers/power-and-progress.jpg

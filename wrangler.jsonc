@@ -8,6 +8,11 @@
       "binding": "henryreads_likes",
       "database_name": "henryreads-likes",
       "database_id": "224afeb8-2809-49f9-b672-43535e64b784"
+    },
+    {
+      "binding": "henryreads_comments",
+      "database_name": "henryreads-comments",
+      "database_id": "0b371ea3-0c7f-4bd8-a2f2-dfe7fe7f7ae1"
     }
   ]
 }

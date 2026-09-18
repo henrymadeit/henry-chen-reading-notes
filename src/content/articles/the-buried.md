@@ -6,6 +6,7 @@ category: 歷史與文明
 bookAuthor: 何偉
 tags:  [埃及, 何偉, 阿拉伯之春, 國家認同]
 featured: false
+draft: true
 //readingNumber: 41
 //takeaway: 從中國到埃及，何偉繼續觀察一個社會如何尋找自己的方向。
 cover: /images/covers/the-buried.png

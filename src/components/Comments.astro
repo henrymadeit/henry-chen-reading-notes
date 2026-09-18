@@ -1,0 +1,306 @@
+---
+const { slug } = Astro.props;
+---
+
+<section class="comments" data-comments data-slug={slug}>
+  <h2>留言</h2>
+
+  <div class="comment-list" data-comment-list>
+    <p class="comment-loading">載入留言中⋯⋯</p>
+  </div>
+
+  <form class="comment-form" data-comment-form>
+    <label>
+      姓名
+      <input
+        type="text"
+        name="name"
+        maxlength="40"
+        required
+      />
+    </label>
+
+    <label>
+      留言
+      <textarea
+        name="message"
+        rows="4"
+        maxlength="1000"
+        required
+      ></textarea>
+    </label>
+
+    <div class="comment-submit-row">
+      <span class="comment-status" data-comment-status></span>
+      <button type="submit">送出留言</button>
+    </div>
+  </form>
+</section>
+
+<script>
+  const sections = document.querySelectorAll<HTMLElement>('[data-comments]');
+
+  for (const section of sections) {
+    const slug = section.dataset.slug;
+    const list = section.querySelector<HTMLElement>('[data-comment-list]');
+    const form = section.querySelector<HTMLFormElement>('[data-comment-form]');
+    const status = section.querySelector<HTMLElement>('[data-comment-status]');
+
+    if (!slug || !list || !form || !status) continue;
+
+    const apiUrl = `/api/comments/${encodeURIComponent(slug)}`;
+
+    function formatDate(value: string) {
+      const date = new Date(value.replace(' ', 'T') + 'Z');
+
+      return new Intl.DateTimeFormat('zh-TW', {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Taipei'
+      }).format(date);
+    }
+
+async function loadComments() {
+  try {
+    const response = await fetch(apiUrl);
+
+    if (!response.ok) throw new Error();
+
+    const comments = await response.json() as Array<{
+      id: number;
+      name: string;
+      message: string;
+      created_at: string;
+      likes: number;
+    }>;
+
+    list.replaceChildren();
+
+    if (comments.length === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'comment-empty';
+      empty.textContent = '還沒有留言。';
+      list.appendChild(empty);
+      return;
+    }
+
+    for (const comment of comments) {
+      const article = document.createElement('article');
+      article.className = 'comment-item';
+
+      const header = document.createElement('div');
+      header.className = 'comment-header';
+
+      const name = document.createElement('strong');
+      name.textContent = comment.name;
+
+      const time = document.createElement('time');
+      time.textContent = formatDate(comment.created_at);
+
+      const message = document.createElement('p');
+      message.textContent = comment.message;
+
+      const likeButton = document.createElement('button');
+      likeButton.type = 'button';
+      likeButton.className = 'comment-like';
+      likeButton.textContent = `♡ ${comment.likes}`;
+
+      likeButton.addEventListener('click', async () => {
+        likeButton.disabled = true;
+
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: comment.id })
+          });
+
+          if (!response.ok) throw new Error();
+
+          const result = await response.json() as {
+            likes: number;
+          };
+
+          likeButton.textContent = `♥ ${result.likes}`;
+          likeButton.classList.add('liked');
+        } catch {
+          // 按讚失敗時保持原數字
+        } finally {
+          likeButton.disabled = false;
+        }
+      });
+      
+      header.append(name, time);
+      article.append(header, message, likeButton);
+      list.appendChild(article);
+    }
+  } catch {
+    list.textContent = '留言載入失敗，請稍後再試。';
+  }
+}
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      const formData = new FormData(form);
+
+      const name = String(formData.get('name') ?? '').trim();
+      const message = String(formData.get('message') ?? '').trim();
+
+      if (!name || !message) return;
+
+      status.textContent = '送出中⋯⋯';
+      if (button) button.disabled = true;
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ name, message })
+        });
+
+        const result = await response.json() as {
+          error?: string;
+        };
+
+        if (!response.ok) {
+          throw new Error(result.error || '留言送出失敗');
+        }
+
+        form.reset();
+        status.textContent = '留言已送出。';
+        await loadComments();
+      } catch (error) {
+        status.textContent =
+          error instanceof Error ? error.message : '留言送出失敗';
+      } finally {
+        if (button) button.disabled = false;
+      }
+    });
+
+    loadComments();
+  }
+</script>
+
+<style>
+  .comments {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border, #d8d8d8);
+  }
+
+
+  .comments h2 {
+    margin: 0 0 1.25rem;
+    font-size: 1.25rem;
+  }
+
+  .comment-list {
+    margin-bottom: 1.5rem;
+  }
+
+  .comment-loading,
+  .comment-empty {
+    opacity: 0.7;
+  }
+
+:global(.comment-item) {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+:global(.comment-item p) {
+  margin: 0;
+  padding: 0 0 0 0.8rem;
+  border-left: 2px solid var(--border, #888);
+  white-space: pre-wrap;
+}
+
+:global(.comment-like) {
+  appearance: none;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: -1.5rem 0 0 0;
+  justify-self: start;
+  color: inherit;
+  font: inherit;
+  opacity: 0.65;
+  cursor: pointer;
+  box-shadow: none !important;
+}
+:global(.comment-like.liked) {
+  color: #d86b8b;
+  opacity: 1;
+}
+
+  :global(.comment-header) {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.4rem;
+  }
+
+  :global(.comment-header time) {
+    font-size: 0.85rem;
+    opacity: 0.6;
+  }
+
+
+  .comment-form {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .comment-form label {
+    display: grid;
+    gap: 0.1rem;
+  }
+
+  .comment-form input,
+  .comment-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.7rem 0.8rem;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 1px solid var(--border, #aaa);
+    border-radius: 6px;
+  }
+
+  .comment-form textarea {
+    resize: vertical;
+  }
+
+  .comment-submit-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+
+  .comment-status {
+    font-size: 0.9rem;
+    opacity: 0.75;
+  }
+
+  .comment-form button {
+    padding: 0.55rem 1rem;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .comment-form button:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+</style>

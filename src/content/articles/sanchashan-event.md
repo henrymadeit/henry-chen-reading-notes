@@ -6,6 +6,7 @@ category: 閱讀隨筆
 bookAuthor: 甘耀明，朱和之
 tags: [二戰, 中央山脈, 台灣, 日本]
 featured: false
+draft: true
 //readingNumber: 
 //takeaway: 
 cover: /images/articles/sanchashan/sanchashan-cover.jpg

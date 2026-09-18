@@ -6,6 +6,7 @@ category: 閱讀隨筆
 bookAuthor: 奧托．卡留斯
 tags: [二戰, 戰車, 東線, 德國]
 featured: false
+draft: true
 //readingNumber: 
 //takeaway: 
 cover: /images/articles/tiger/tiger-cover.jpg
