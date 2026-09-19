@@ -3,15 +3,14 @@ const { slug } = Astro.props;
 ---
 
 <section class="comments" data-comments data-slug={slug}>
-  <h2>留言</h2>
-
   <div class="comment-list" data-comment-list>
-    <p class="comment-loading">載入留言中⋯⋯</p>
-  </div>
+  <p class="comment-loading">載入留言中……</p>
+</div>
 
+  <h2>歡迎留言</h2>
   <form class="comment-form" data-comment-form>
     <label>
-      姓名
+      您希望如何被稱呼？
       <input
         type="text"
         name="name"
@@ -21,7 +20,7 @@ const { slug } = Astro.props;
     </label>
 
     <label>
-      留言
+      寫下您的留言
       <textarea
         name="message"
         rows="4"
@@ -103,10 +102,17 @@ async function loadComments() {
       const message = document.createElement('p');
       message.textContent = comment.message;
 
+      const likeKey = `comment-liked-${comment.id}`;
+      let liked = localStorage.getItem(likeKey) === '1';
+
       const likeButton = document.createElement('button');
       likeButton.type = 'button';
       likeButton.className = 'comment-like';
-      likeButton.textContent = `♡ ${comment.likes}`;
+      likeButton.textContent = `${liked ? '♥' : '♡'} ${comment.likes}`;
+
+      if (liked) {
+         likeButton.classList.add('liked');
+       }
 
       likeButton.addEventListener('click', async () => {
         likeButton.disabled = true;
@@ -117,7 +123,10 @@ async function loadComments() {
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ id: comment.id })
+            body: JSON.stringify({
+              id: comment.id,
+              action: liked ? 'unlike' : 'like'
+            })
           });
 
           if (!response.ok) throw new Error();
@@ -126,8 +135,18 @@ async function loadComments() {
             likes: number;
           };
 
-          likeButton.textContent = `♥ ${result.likes}`;
-          likeButton.classList.add('liked');
+          liked = !liked;
+
+          if (liked) {
+            localStorage.setItem(likeKey, '1');
+            likeButton.textContent = `♥ ${result.likes}`;
+            likeButton.classList.add('liked');
+          } else {
+            localStorage.removeItem(likeKey);
+            likeButton.textContent = `♡ ${result.likes}`;
+            likeButton.classList.remove('liked');
+          }
+        
         } catch {
           // 按讚失敗時保持原數字
         } finally {
@@ -192,13 +211,13 @@ async function loadComments() {
 <style>
   .comments {
     margin-top: 2rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border, #d8d8d8);
   }
 
 
   .comments h2 {
     margin: 0 0 1.25rem;
+     padding-top: 1.5rem;
+     border-top: 1px solid var(--border, #d8d8d8);
     font-size: 1.25rem;
   }
 
@@ -238,7 +257,7 @@ async function loadComments() {
   box-shadow: none !important;
 }
 :global(.comment-like.liked) {
-  color: #d86b8b;
+  color: #ff5c93;
   opacity: 1;
 }
 

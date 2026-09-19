@@ -60,15 +60,23 @@ const { slug } = Astro.props;
     }
 
     button.addEventListener("click", async () => {
-      if (localStorage.getItem(storageKey) === "true") return;
+      const isLiked = localStorage.getItem(storageKey) === "true";
 
       button.disabled = true;
 
       try {
         const response = await fetch(
-          `/api/likes/${encodeURIComponent(slug)}`,
-          { method: "POST" }
-        );
+         `/api/likes/${encodeURIComponent(slug)}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            action: isLiked ? "unlike" : "like"
+          })
+        }
+      );
 
         const data = await response.json();
 
@@ -76,12 +84,16 @@ const { slug } = Astro.props;
           count.textContent = `(${data.likes ?? 0})`;
         }
 
-        if (heart) {
-          heart.textContent = "♥";
+        if (isLiked) {
+          if (heart) heart.textContent = "♡";
+            button.classList.remove("liked");
+            localStorage.removeItem(storageKey);
+        } else {
+        if (heart) heart.textContent = "♥";
+          button.classList.add("liked");
+          localStorage.setItem(storageKey, "true"); 
         }
 
-        button.classList.add("liked");
-        localStorage.setItem(storageKey, "true");
       } catch (error) {
         console.error("Unable to add like:", error);
       } finally {
@@ -124,8 +136,12 @@ const { slug } = Astro.props;
   }
 
   .like-button.liked .like-heart {
-    color: #c94a4a;
+    color: #ff5c93;
   }
+
+  .like-button.liked {
+  opacity: 1;
+}
 
 .like-area {
   display: flex;

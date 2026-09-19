@@ -68,9 +68,11 @@ export const onRequestPatch: PagesFunction<Env> = async (context) => {
   try {
     const body = await context.request.json() as {
       id?: number;
+      action?: 'like' | 'unlike';
     };
 
     const id = Number(body.id);
+    const action = body.action;
 
     if (!Number.isInteger(id) || id <= 0) {
       return Response.json(
@@ -79,14 +81,26 @@ export const onRequestPatch: PagesFunction<Env> = async (context) => {
       );
     }
 
+    if (action !== 'like' && action !== 'unlike') {
+    return Response.json(
+      { error: '無效的按讚動作' },
+      { status: 400 }
+      );
+    }
+
     const result = await context.env.henryreads_comments
       .prepare(`
         UPDATE comments
-        SET likes = likes + 1
+        
+        SET likes = CASE
+          WHEN ? = 'like' THEN likes + 1
+          ELSE MAX(likes - 1, 0)
+        END
+
         WHERE id = ?
         RETURNING likes
       `)
-      .bind(id)
+      .bind(action, id)
       .first<{ likes: number }>();
 
     if (!result) {
