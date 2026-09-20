@@ -188,7 +188,8 @@ async function loadComments() {
           let replyLiked = localStorage.getItem(replyLikeKey) === '1';
 
           if (replyLiked) {
-    replyLikeButton.textContent = `♥ ${comment.reply_likes}`;
+            replyLikeButton.textContent = `♥ ${comment.reply_likes}`;
+            replyLikeButton.classList.add('liked');
           }
 
           replyLikeButton.addEventListener('click', async () => {
@@ -222,10 +223,13 @@ async function loadComments() {
             if (replyLiked) {
               localStorage.setItem(replyLikeKey, '1');
               replyLikeButton.textContent = `♥ ${result.reply_likes}`;
+              replyLikeButton.classList.add('liked');
             } else {
-              localStorage.removeItem(replyLikeKey);
-              replyLikeButton.textContent = `♡ ${result.reply_likes}`;
+            localStorage.removeItem(replyLikeKey);
+            replyLikeButton.textContent = `♡ ${result.reply_likes}`;
+            replyLikeButton.classList.remove('liked');
             }
+
             } catch {
               // 按讚失敗時保持原狀
             } finally {
@@ -412,6 +416,12 @@ list.appendChild(article);
   cursor: pointer;
   box-shadow: none !important;
 }
+
+:global(.comment-like.liked) {
+  color: #ff5c93;
+  opacity: 1;
+}
+
 :global(.comment-reply-button) {
   appearance: none !important;
   -webkit-appearance: none !important;
