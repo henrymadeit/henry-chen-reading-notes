@@ -6,7 +6,7 @@ const { title = 'Henry Chen 的隨筆', description = '閱讀、旅行，以及�
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
 ---
 <!doctype html>
-<html lang="zh-Hant" data-theme="light">
+<html lang="zh-Hant" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -17,8 +17,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
   <script is:inline>
     (() => {
       const saved = localStorage.getItem('theme');
-      const systemDark = matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.dataset.theme = saved || (systemDark ? 'dark' : 'light');
+      document.documentElement.dataset.theme = saved || 'dark';
     })();
   </script>
 </head>
