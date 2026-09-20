@@ -1,0 +1,101 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="管理｜Henry Chen 的隨筆">
+  <article class="article-shell">
+    <header class="article-header">
+      <p class="eyebrow">Admin</p>
+      <h1>網站管理</h1>
+    </header>
+
+    <div class="prose">
+      <form class="admin-login">
+        <label>
+          管理密碼
+          <input
+            type="password"
+            name="password"
+            autocomplete="current-password"
+            required
+          />
+        </label>
+
+        <button type="submit">登入</button>
+      </form>
+    </div>
+  </article>
+</BaseLayout>
+  <script>
+  const form = document.querySelector<HTMLFormElement>('.admin-login');
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const input = form.querySelector<HTMLInputElement>('input[name="password"]');
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+    if (!input || !input.value) return;
+
+    if (button) button.disabled = true;
+
+    try {
+      const response = await fetch('/api/admin-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          password: input.value
+        })
+      });
+
+      const result = await response.json() as {
+        success?: boolean;
+        error?: string;
+      };
+
+      if (!response.ok || !result.success) {
+        alert(result.error || '登入失敗');
+        return;
+      }
+
+      window.location.href = '/';
+    } catch {
+      alert('登入失敗');
+    } finally {
+      input.value = '';
+      if (button) button.disabled = false;
+    }
+  });
+  </script>
+<style>
+  .admin-login {
+    display: grid;
+    gap: 1rem;
+    max-width: 360px;
+  }
+
+  .admin-login label {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .admin-login input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.7rem 0.8rem;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 1px solid var(--border, #aaa);
+    border-radius: 6px;
+  }
+
+  .admin-login button {
+    justify-self: start;
+    padding: 0.55rem 1rem;
+    font: inherit;
+    cursor: pointer;
+  }
+</style>

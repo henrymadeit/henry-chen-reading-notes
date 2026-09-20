@@ -1,11 +1,3 @@
-------formdata-undici-088344319687
-Content-Disposition: form-data; name="metadata"
-
-{"main_module":"functionsWorker-0.5893836544981332.js"}
-------formdata-undici-088344319687
-Content-Disposition: form-data; name="functionsWorker-0.5893836544981332.js"; filename="functionsWorker-0.5893836544981332.js"
-Content-Type: application/javascript+module
-
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
@@ -298,7 +290,7 @@ var onRequestGet4 = /* @__PURE__ */ __name(async () => {
   });
 }, "onRequestGet");
 
-// ../.wrangler/tmp/pages-kESuR6/functionsRoutes-0.556933530356571.mjs
+// ../.wrangler/tmp/pages-47dZxe/functionsRoutes-0.6845688320925958.mjs
 var routes = [
   {
     routePath: "/api/comments/:slug",
@@ -813,5 +805,3 @@ var cloneResponse = /* @__PURE__ */ __name((response) => (
 export {
   pages_template_worker_default as default
 };
-
-------formdata-undici-088344319687--

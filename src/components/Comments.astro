@@ -49,6 +49,20 @@ const { slug } = Astro.props;
 
     const apiUrl = `/api/comments/${encodeURIComponent(slug)}`;
 
+    let isAdmin = false;
+      async function checkAdmin() {
+        try {
+          const response = await fetch('/api/admin-status');
+            if (!response.ok) return false;
+          const result = await response.json() as {
+          admin?: boolean;
+          };
+          return result.admin === true;
+        } catch {
+          return false;
+          }
+    }
+
     function formatDate(value: string) {
       const date = new Date(value.replace(' ', 'T') + 'Z');
 
@@ -74,6 +88,9 @@ async function loadComments() {
       message: string;
       created_at: string;
       likes: number;
+      reply: string | null;
+      reply_updated_at: string | null;
+      reply_likes: number;
     }>;
 
     list.replaceChildren();
@@ -156,7 +173,145 @@ async function loadComments() {
       
       header.append(name, time);
       article.append(header, message, likeButton);
-      list.appendChild(article);
+        if (comment.reply) {
+          const reply = document.createElement('p');
+          reply.className = 'comment-owner-reply';
+          reply.textContent = `[Henry] ${comment.reply}`;
+          article.appendChild(reply);
+
+          const replyLikeButton = document.createElement('button');
+          replyLikeButton.type = 'button';
+          replyLikeButton.className = 'comment-like';
+          replyLikeButton.textContent = `♡ ${comment.reply_likes}`;
+
+          const replyLikeKey = `comment-reply-liked:${comment.id}`;
+          let replyLiked = localStorage.getItem(replyLikeKey) === '1';
+
+          if (replyLiked) {
+    replyLikeButton.textContent = `♥ ${comment.reply_likes}`;
+          }
+
+          replyLikeButton.addEventListener('click', async () => {
+            replyLikeButton.disabled = true;
+
+            try {
+            const action = replyLiked ? 'reply-unlike' : 'reply-like';
+
+            const response = await fetch(apiUrl, {
+              method: 'PATCH',
+              headers: {
+               'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+              id: comment.id,
+               action
+              })
+            });
+
+            const result = await response.json() as {
+              reply_likes?: number;
+              error?: string;
+            };
+
+            if (!response.ok || typeof result.reply_likes !== 'number') {
+             throw new Error(result.error || '按讚失敗');
+            }
+
+            replyLiked = !replyLiked;
+
+            if (replyLiked) {
+              localStorage.setItem(replyLikeKey, '1');
+              replyLikeButton.textContent = `♥ ${result.reply_likes}`;
+            } else {
+              localStorage.removeItem(replyLikeKey);
+              replyLikeButton.textContent = `♡ ${result.reply_likes}`;
+            }
+            } catch {
+              // 按讚失敗時保持原狀
+            } finally {
+              replyLikeButton.disabled = false;
+            }
+        });
+
+        article.appendChild(replyLikeButton);
+        }
+        
+        if (isAdmin) {
+          const replyButton = document.createElement('button');
+          replyButton.type = 'button';
+          replyButton.className = 'comment-reply-button';
+          replyButton.textContent = comment.reply ? '修改回覆' : '回覆';
+
+          replyButton.addEventListener('click', () => {
+            if (article.querySelector('.comment-reply-form')) return;
+
+              const replyForm = document.createElement('div');
+              replyForm.className = 'comment-reply-form';
+
+              const textarea = document.createElement('textarea');
+              textarea.rows = 3;
+              textarea.maxLength = 1000;
+              textarea.value = comment.reply ?? '';
+              textarea.placeholder = '寫下回覆';
+
+              const sendButton = document.createElement('button');
+              sendButton.type = 'button';
+              sendButton.textContent = '送出';
+
+              const cancelButton = document.createElement('button');
+              cancelButton.type = 'button';
+              cancelButton.textContent = '取消';
+
+          cancelButton.addEventListener('click', () => {
+          replyForm.remove();
+        });
+
+    sendButton.addEventListener('click', async () => {
+      const reply = textarea.value.trim();
+      if (!reply) return;
+
+      sendButton.disabled = true;
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            id: comment.id,
+            action: 'reply',
+            reply
+          })
+        });
+
+        const result = await response.json() as {
+          error?: string;
+        };
+
+        if (!response.ok) {
+          throw new Error(result.error || '回覆失敗');
+        }
+
+        await loadComments();
+      } catch (error) {
+        alert(
+          error instanceof Error
+            ? error.message
+            : '回覆失敗'
+        );
+        sendButton.disabled = false;
+      }
+    });
+
+    replyForm.append(textarea, sendButton, cancelButton);
+    article.appendChild(replyForm);
+  });
+
+  article.appendChild(replyButton);
+}
+
+list.appendChild(article);
     }
   } catch {
     list.textContent = '留言載入失敗，請稍後再試。';
@@ -204,7 +359,8 @@ async function loadComments() {
       }
     });
 
-    loadComments();
+    isAdmin = await checkAdmin();
+    await loadComments();
   }
 </script>
 
@@ -256,9 +412,59 @@ async function loadComments() {
   cursor: pointer;
   box-shadow: none !important;
 }
-:global(.comment-like.liked) {
-  color: #ff5c93;
-  opacity: 1;
+:global(.comment-reply-button) {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0.25rem 0 0 0.8rem;
+  justify-self: start;
+  color: inherit;
+  font: inherit;
+  font-size: 1rem;
+  opacity: 0.65;
+  cursor: pointer;
+  box-shadow: none !important;
+}
+
+:global(.comment-owner-reply) {
+  margin: 0;
+  padding: 0 0 0 0.8rem;
+  border-left: 2px solid var(--border, #888);
+  white-space: pre-wrap;
+  opacity: 0.85;
+}
+
+:global(.comment-reply-form) {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0.75rem 0;
+  width: 100%;
+}
+
+:global(.comment-reply-form textarea) {
+  width: 100%;
+  min-height: 5rem;
+  box-sizing: border-box;
+  padding: 0.7rem 0.8rem;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--border, #aaa);
+  border-radius: 6px;
+  resize: vertical;
+}
+
+:global(.comment-reply-form button) {
+  flex: 0 0 auto;
+  padding: 0.55rem 0.8rem;
+  font: inherit;
+  font-size: 1rem;
+  cursor: pointer;
 }
 
   :global(.comment-header) {
@@ -322,4 +528,32 @@ async function loadComments() {
     cursor: default;
     opacity: 0.5;
   }
+
+/* Henry 管理操作按鈕 */
+:global(.comment-reply-button),
+:global(.comment-reply-form button) {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+
+  background: #1f5a43 !important;
+  border: 1px solid #2f8a63 !important;
+  border-radius: 4px;
+
+  color: #fff !important;
+
+  padding: 0.35rem 0.7rem !important;
+  font: inherit;
+  font-size: 0.9rem;
+
+  opacity: 1;
+  cursor: pointer;
+  box-shadow: none !important;
+}
+
+/* 滑鼠移上去稍微亮一點 */
+:global(.comment-reply-button:hover),
+:global(.comment-reply-form button:hover) {
+  background: #287454 !important;
+  border-color: #43a979 !important;
+}
 </style>
