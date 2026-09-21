@@ -5,7 +5,7 @@ published: 2026-07-06
 category: 歷史與文明
 bookAuthor: 大衛．阿布拉菲雅
 tags: [海洋文明, 世界史, 貿易, 帝國]
-featured: true
+//featured: true
 //readingNumber: 10
 //takeaway: 除了地中海以外的海洋
 cover: /images/covers/boundless-sea.jpg

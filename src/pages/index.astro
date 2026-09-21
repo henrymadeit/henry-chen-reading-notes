@@ -33,7 +33,7 @@ const categoryDescriptions = {
       </div>
     
       <div class="card-grid">
-        {pinned.map((article) => <ArticleCard article={article} />)}
+        {pinned.map((article) => <ArticleCard article={article} showLikes={true} />)}
       </div>
     </section>
   )}
@@ -44,7 +44,7 @@ const categoryDescriptions = {
       </div>
 
       <div class="card-grid featured-grid">
-        {featured.map((article) => <ArticleCard article={article} />)}
+        {featured.map((article) => <ArticleCard article={article} showLikes={true} />)}
       </div>
     </section>
   )}

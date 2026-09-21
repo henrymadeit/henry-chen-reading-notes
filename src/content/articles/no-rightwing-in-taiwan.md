@@ -6,7 +6,7 @@ category: 台灣與世界
 tags:  [右派, 左派, 平等, 進步]
 featured: true
 //message: 豈止如此，台灣恐怕永遠不會有右派
-pinned: true
+//pinned: true
 cover: /images/covers/cover-no-rightwing.jpg
 coverCaption: 繁體中文版書封面
 ---
