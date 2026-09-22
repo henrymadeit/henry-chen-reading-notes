@@ -22,21 +22,24 @@ const categoryDescriptions = {
     <p class="hero-copy">閱讀讓我看見世界，旅行讓我體會世界，寫作助我整理思緒。</p>
     <p class="hero-message">歡迎建議與交流: henryreads.pages@gmail.com</p>
   </section>
-  <section class="wrap topic-grid" aria-label="主題">
+    {pinned.length > 0 && (
+      <section class="wrap latest-section">
+        {pinned.map((article) => (
+          <div class="latest-item">
+            <h2 class="latest-heading">最新文章</h2>
+            <ArticleCard article={article} showLikes={true} wideCounts={true} />
+          </div>
+        ))}
+      </section>
+    )}
+
+  <section class="wrap overview-section">
+  <h2 class="overview-heading">總覽</h2>
+  <div class="topic-grid" aria-label="主題">
     {categories.map((category) => <a class="topic-card" href={categoryPaths[category]}><h2>{category}</h2><p>{categoryDescriptions[category]}</p></a>)}
-  
+    </div>
   </section>
-  {pinned.length > 0 && (
-    <section class="wrap section">
-      <div class="section-heading">
-        <h2>最近新增</h2>
-      </div>
-    
-      <div class="card-grid">
-        {pinned.map((article) => <ArticleCard article={article} showLikes={true} />)}
-      </div>
-    </section>
-  )}
+
   {featured.length > 0 && (
     <section class="wrap section">
       <div class="section-heading">

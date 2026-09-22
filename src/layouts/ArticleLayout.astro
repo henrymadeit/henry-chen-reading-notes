@@ -46,5 +46,5 @@ const { article, related } = Astro.props as { article: Article; related: Article
 
     <div class="prose"><slot /></div>
   </article>
-  {related.length > 0 && <aside class="related wrap"><h2>相關文章</h2><div class="card-grid">{related.map((item) => <ArticleCard article={item} compact />)}</div></aside>}
+  {related.length > 0 && <aside class="related wrap"><h2>相關文章</h2><div class="card-grid">{related.map((item) => <ArticleCard article={item} compact showLikes={true} />)}</div></aside>}
 </BaseLayout>
