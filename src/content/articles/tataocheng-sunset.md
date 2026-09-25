@@ -5,7 +5,7 @@ published: 2024-07-19
 category: 閱讀隨筆
 bookAuthor: 譚端
 tags: [台灣, 架空歷史]
-featured: true
+//featured: true
 cover: /images/covers/tataocheng-sunset.jpg
 coverCaption: 繁體中文版封面
 //readingNumber: 27

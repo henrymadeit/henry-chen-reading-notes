@@ -14,6 +14,10 @@ const categoryDescriptions = {
   '台灣與世界': '從台灣出發，理解世界。',
   // '廈門大稻埕陳氏': '一個家族往返廈門、上海與大稻埕的百年記憶。',
 };
+//在下方加上宣傳字語，不加就在'與'間空白
+const promotion = '新增 閱讀隨筆〈尼羅河：孕育人類文明的偉大河流〉，歡迎參觀';
+const promotionDate = '-2026/09/24-';
+
 ---
 <BaseLayout>
   <section class="hero wrap">
@@ -21,24 +25,25 @@ const categoryDescriptions = {
     <h1>Henry Chen 的隨筆</h1>
     <p class="hero-copy">閱讀讓我看見世界，旅行讓我體會世界，寫作助我整理思緒。</p>
     <p class="hero-message">歡迎建議與交流: henryreads.pages@gmail.com</p>
+    {promotion && (
+  <p class="hero-promotion">
+    {promotion}<br />
+    {promotionDate}
+  </p>
+)}
   </section>
+
     {pinned.length > 0 && (
       <section class="wrap latest-section">
+      <h2 class="latest-heading">最新文章</h2>
         {pinned.map((article) => (
           <div class="latest-item">
-            <h2 class="latest-heading">最新文章</h2>
             <ArticleCard article={article} showLikes={true} wideCounts={true} />
           </div>
         ))}
       </section>
     )}
 
-  <section class="wrap overview-section">
-  <h2 class="overview-heading">文章總覽</h2>
-  <div class="topic-grid" aria-label="主題">
-    {categories.map((category) => <a class="topic-card" href={categoryPaths[category]}><h2>{category}</h2><p>{categoryDescriptions[category]}</p></a>)}
-    </div>
-  </section>
 
   {featured.length > 0 && (
     <section class="wrap section">
@@ -51,4 +56,22 @@ const categoryDescriptions = {
       </div>
     </section>
   )}
+  
+  <section class="wrap overview-section">
+  <h2 class="overview-heading">分類總覽</h2>
+  <div class="topic-grid" aria-label="主題">
+    {categories.map((category) => <a class="topic-card" href={categoryPaths[category]}><h2>{category}</h2><p>{categoryDescriptions[category]}</p></a>)}
+    </div>
+  </section>
+
 </BaseLayout>
+
+<style>
+  .hero-promotion {
+    text-align: center;
+    font-size: 1.25rem;
+    color: #d7b74d;
+    font-weight: 750;
+    margin-top: 10rem;
+  }
+</style>
