@@ -8,15 +8,15 @@ const featured = articles.filter((a) => a.data.featured).slice(0, 4);
 const pinned = articles.filter((a) => a.data.pinned).slice(0, 2);
 const latest = articles.slice(0, 6);
 const categoryDescriptions = {
-  '閱讀隨筆': '一本書如何改變我理解世界的方式。',
-  '歷史與文明': '從帝國、海洋、宗教與地方，理解文明的選擇。',
-  '行旅與隨想': '遠的或近的，風景或人事，過去與當下。',
-  '台灣與世界': '從台灣出發，理解世界。',
+  '閱讀隨筆': '閱讀的樂趣與意外的發現',
+  '歷史與文明': '從海洋、土地與宗教，理解文明的選擇',
+  '行旅與隨想': '遠的或近的，風景或人事，過去與當下',
+  '台灣與世界': '從台灣出發，探索世界',
   // '廈門大稻埕陳氏': '一個家族往返廈門、上海與大稻埕的百年記憶。',
 };
 //在下方加上宣傳字語，不加就在'與'間空白
-const promotion = '新增 閱讀隨筆〈尼羅河：孕育人類文明的偉大河流〉，歡迎參觀';
-const promotionDate = '-2026/09/24-';
+const promotion = '新增 閱讀隨筆 <尼羅河：孕育人類文明的偉大河流〉，歡迎參觀';
+const promotionDate = '- 2026/09/24 -';
 
 ---
 <BaseLayout>
@@ -24,7 +24,7 @@ const promotionDate = '-2026/09/24-';
     <p class="eyebrow">閱讀，旅行，聯想。</p>
     <h1>Henry Chen 的隨筆</h1>
     <p class="hero-copy">閱讀讓我看見世界，旅行讓我體會世界，寫作助我整理思緒。</p>
-    <p class="hero-message">歡迎建議與交流: henryreads.pages@gmail.com</p>
+    <p class="hero-message">歡迎交流: henryreads.pages@gmail.com</p>
     {promotion && (
   <p class="hero-promotion">
     {promotion}<br />
