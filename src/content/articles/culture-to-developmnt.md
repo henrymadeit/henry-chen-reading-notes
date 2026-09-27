@@ -5,8 +5,8 @@ published: 2026-08-14
 category: 台灣與世界
 //bookAuthor: 
 tags: [台灣, 產業, 科技, 文化]
-pinned: true
-//featured: true
+//pinned: true
+featured: true
 //readingNumber: 10
 //takeaway: 
 cover: /images/articles/culture-to-development/t-ara.jpg

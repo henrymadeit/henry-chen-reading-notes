@@ -4,10 +4,10 @@ description: 不同的看法與意外的聯想
 published: 2026-08-28
 category: 閱讀隨筆
 tags: [民國, 美國外交, 台灣民主]
-draft: true
-//message: 哈哈作者會不高興
+//draft: true
+//note: 哈哈作者會不高興
 //featured: true
-//pinned: true
+pinned: true
 cover: /images/articles/made-in-america/cover-chinese.jpg
 coverCaption: 繁體中文版書封面
 ---

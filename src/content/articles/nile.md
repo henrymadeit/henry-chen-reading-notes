@@ -4,7 +4,7 @@ description: 一條我們不熟悉，與眾不同的大河
 published: 2026-09-22
 category: 閱讀隨筆
 bookAuthor: 塔利耶．泰維德
-tags: [東非, 埃及, 英國, 肯亞]
+tags: [非洲, 埃及, 英國, 肯亞]
 pinned: true
 //featured: true
 //readingNumber: 
