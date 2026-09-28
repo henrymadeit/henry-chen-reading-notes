@@ -117,6 +117,7 @@ async function loadComments() {
       time.textContent = formatDate(comment.created_at);
 
       const message = document.createElement('p');
+      message.className = 'comment-message';
       message.textContent = comment.message;
 
       const likeKey = `comment-liked-${comment.id}`;
@@ -124,7 +125,7 @@ async function loadComments() {
 
       const likeButton = document.createElement('button');
       likeButton.type = 'button';
-      likeButton.className = 'comment-like';
+      likeButton.className = 'comment-like comment-main-like';
       likeButton.textContent = `${liked ? '♥' : '♡'} ${comment.likes}`;
 
       if (liked) {
@@ -181,7 +182,7 @@ async function loadComments() {
 
           const replyLikeButton = document.createElement('button');
           replyLikeButton.type = 'button';
-          replyLikeButton.className = 'comment-like';
+          replyLikeButton.className = 'comment-like comment-reply-like';
           replyLikeButton.textContent = `♡ ${comment.reply_likes}`;
 
           const replyLikeKey = `comment-reply-liked:${comment.id}`;
@@ -403,12 +404,16 @@ list.appendChild(article);
   white-space: pre-wrap;
 }
 
+:global(.comment-message) {
+  margin-bottom: -0.01rem !important;
+}
+
 :global(.comment-like) {
   appearance: none;
   background: transparent !important;
   border: none !important;
   padding: 0 !important;
-  margin: -1.5rem 0 0 0;
+  margin: -0.5rem 0 0 0;
   justify-self: start;
   color: inherit;
   font: inherit;
@@ -439,11 +444,20 @@ list.appendChild(article);
 }
 
 :global(.comment-owner-reply) {
-  margin: 0;
-  padding: 0 0 0 0.8rem;
-  border-left: 2px solid var(--border, #888);
+  margin: 0 !important;
+  padding: 0 0 0 1rem !important;
+  border: none !important;
+  border-left: none !important;
   white-space: pre-wrap;
   opacity: 0.85;
+}
+
+:global(.comment-main-like) {
+  margin-left: 1rem !important;
+}
+
+:global(.comment-reply-like) {
+  margin-left: 1rem !important;
 }
 
 :global(.comment-reply-form) {
