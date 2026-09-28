@@ -3,14 +3,14 @@ title: 納米比亞之旅
 description: 2025年的大旅行 [0422-0508]
 published: 2025-05-20
 category: 行旅與隨想
-deaft: true
+//draft: true
 tags: [非洲, 攝影團, 沙漠, 動物]
 //pinned: true
 //featured: true
 cover: /images/articles/trip-to-namibia/namibia-itinerary.jpg
 ---
 
-## 連名字都沒聽過的遠地
+## 名字都沒聽過的遠地
 
 2025年四月底陪著太座參加了去非洲納米比亞的攝影團。「納米比亞共和國」位在非洲西南，西臨大西洋，南接南非，1990年前稱為「西南非」。土地是台灣的23倍大，有兩個沙漠：內陸的「克拉哈里沙漠」與海邊的「納米布沙漠」，納國是非洲在撒哈拉以南最乾旱的國家。其人口只有三百萬，密度世界第二低，僅次於蒙古人民共和國。
 
