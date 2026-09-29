@@ -224,6 +224,22 @@ nav a[aria-current="page"] { color: var(--text); }
   padding-bottom: calc(clamp(4.5rem, 10vw, 8.5rem) - 25px);
 }
 
+.page-header-hero {
+  position: relative;
+}
+
+.page-header-hero .section-hero-caption {
+  position: absolute;
+  right: 1.2rem;
+  bottom: 0.5rem;
+  margin: 0;
+  max-width: none;
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: rgb(255, 255, 255);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
 .dek {
   color: var(--muted);
   font-family: Georgia, "Times New Roman", serif;

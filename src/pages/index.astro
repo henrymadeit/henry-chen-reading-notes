@@ -20,17 +20,18 @@ const promotion2 = '新增 閱讀隨筆 <由余杰的「養共為患」一書談
 
 ---
 <BaseLayout>
-  <section class="hero wrap">
+  <section class="hero wrap home-hero">
     <p class="eyebrow">閱讀，旅行，聯想。</p>
     <h1>Henry Chen 的隨筆</h1>
     <p class="hero-copy">閱讀讓我看見世界，旅行讓我體會世界，寫作助我整理思緒。</p>
     <p class="hero-message">歡迎交流: henryreads.pages@gmail.com</p>
     {promotion && (
-  <p class="hero-promotion">
-    {promotion}<br />
-    {promotion2}
-  </p>
-)}
+      <p class="hero-promotion">
+      {promotion}<br />
+      {promotion2}
+      </p>
+    )}
+    <p class="hero-caption">丘比河，波茲瓦納 - Aug 2026</p>
   </section>
 
     {pinned.length > 0 && (
@@ -76,5 +77,21 @@ const promotion2 = '新增 閱讀隨筆 <由余杰的「養共為患」一書談
     font-weight: 750;
     margin-top: 5.5rem;
   }
+
+  .home-hero {
+    position: relative;
+  }
+
+  .hero-caption {
+    position: absolute;
+    right: 0.8rem;
+    bottom: 0.5rem;
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 900;
+    color: rgb(255, 255, 255);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  }
+
 </style>
 
