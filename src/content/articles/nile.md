@@ -6,6 +6,7 @@ category: 閱讀隨筆
 bookAuthor: 塔利耶．泰維德
 tags: [非洲, 埃及, 英國, 肯亞]
 pinned: true
+message: 去埃及前讀了，從肯亞回來又讀。
 //featured: true
 //readingNumber: 
 //draft: true

@@ -30,7 +30,7 @@ const { article, compact = false, showLikes = false, wideCounts = false } = Astr
   }
 
   .tag-row {
-    padding-right: 3.5rem;
+    padding-right: 7rem;
   }
 
   .card-counts {
@@ -45,15 +45,27 @@ const { article, compact = false, showLikes = false, wideCounts = false } = Astr
   white-space: nowrap;
   }
 
-[data-card-like-count] {
-  color: #c76b7a;
-}
+  [data-card-like-count] {
+    color: #c76b7a;
+  }
 
-[data-card-comment-count] {
-  color: inherit;
-  opacity: 0.7;
-}
-</style>
+  [data-card-comment-count] {
+    color: inherit;
+    opacity: 0.7;
+  }
+
+  @media (max-width: 600px) {
+    .tag-row {
+      padding-right: 0;
+      margin-bottom: 1.4rem;
+    }
+
+    .card-counts {
+      right: 1rem;
+      bottom: 0.7rem;
+    }
+  }
+  </style>
 
 <script>
   const likeCounts = document.querySelectorAll("[data-card-like-count]");

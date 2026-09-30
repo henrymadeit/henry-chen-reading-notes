@@ -1,5 +1,5 @@
 ---
-title: 由余杰的「養共為患」一書談起。
+title: 從「養共為患」一書談起。
 description: 不同的看法與意外的聯想
 published: 2026-08-28
 category: 閱讀隨筆
@@ -12,7 +12,7 @@ cover: /images/articles/made-in-america/cover-chinese.jpg
 coverCaption: 繁體中文版書封面
 ---
 
-「養共為患」敘述美中關係，從歷史到當代。沿著本書的脈絡，我卻有了一些意外的聯想。
+余杰的「養共為患」敘述美中關係，從歷史到當代。沿著本書的脈絡，我卻有了一些意外的聯想。
 	
 ## 不同的民國歷史
 

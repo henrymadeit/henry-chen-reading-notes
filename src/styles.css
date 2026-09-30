@@ -353,3 +353,10 @@ nav a[aria-current="page"] { color: var(--text); }
     width: 100%;
   }
 }
+
+.article-message {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: -3rem 0 1.5rem;
+}
