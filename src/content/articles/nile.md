@@ -2,10 +2,10 @@
 title: 尼羅河：孕育人類文明的偉大河流，承載豐沛地理、歷史、水政治的生命線
 description: 一條我們不熟悉，與眾不同的大河
 published: 2026-09-22
-category: 閱讀隨筆
+category: 歷史與文明
 bookAuthor: 塔利耶．泰維德
 tags: [非洲, 埃及, 英國, 肯亞]
-pinned: true
+//pinned: true
 message: 去埃及前讀了，從肯亞回來又讀。
 //featured: true
 //readingNumber: 

@@ -2,7 +2,7 @@
 title: 花開時節
 description: 楊双子以細密考據重建戰前台灣中部閩南家族的生活世界
 published: 2026-07-27
-category: 閱讀隨筆
+category: 台灣與世界
 bookAuthor: 楊双子
 tags: [台灣文學, 日治台灣, 家族, 小說]
 //featured: true

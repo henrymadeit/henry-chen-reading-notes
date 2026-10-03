@@ -2,7 +2,7 @@
 title: LLM與AI ASIC
 description: AI晶片間的競爭
 published: 2025-08-31
-category: 台灣與世界
+category: 行旅與隨想
 tags:  [AI, ASIC, 晶片, Inference]
 featured: true
 message: 一年前的看法。有趣，但不完全正確。
