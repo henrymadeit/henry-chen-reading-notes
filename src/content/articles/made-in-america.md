@@ -1,5 +1,5 @@
 ---
-title: 從「養共為患」一書談起。
+title: 從「養共為患」一書談起
 description: 不同的看法與意外的聯想
 published: 2026-08-28
 category: 台灣與世界

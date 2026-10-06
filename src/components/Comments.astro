@@ -4,10 +4,11 @@ const { slug } = Astro.props;
 
 <section class="comments" data-comments data-slug={slug}>
   <div class="comment-list" data-comment-list>
-  <p class="comment-loading">載入留言中……</p>
-</div>
+    <p class="comment-loading">載入留言中……</p>
+  </div>
 
   <h2>歡迎留言</h2>
+
   <form class="comment-form" data-comment-form>
     <label>
       您希望如何被稱呼？
@@ -48,355 +49,1469 @@ const { slug } = Astro.props;
     likes: number;
     is_owner: number;
   };
+
   type ThreadComment = {
     id: number;
     name: string;
     message: string;
     created_at: string;
+    edited_at: string | null;
+    is_owner: number;
     likes: number;
     reply: string | null;
     reply_updated_at: string | null;
     reply_likes: number;
     replies: Reply[];
   };
-  type Target = { type: 'comment' | 'legacy' | 'reply'; id: number; name: string };
+
+  type Target = {
+    type: 'comment' | 'legacy' | 'reply';
+    id: number;
+    name: string;
+  };
+
+  const EDIT_WINDOW_MS = 60 * 60 * 1000;
 
   for (const section of document.querySelectorAll<HTMLElement>('[data-comments]')) {
     const slug = section.dataset.slug;
     const list = section.querySelector<HTMLElement>('[data-comment-list]');
     const form = section.querySelector<HTMLFormElement>('[data-comment-form]');
     const status = section.querySelector<HTMLElement>('[data-comment-status]');
+
     if (!slug || !list || !form || !status) continue;
 
     const apiUrl = `/api/comments/${encodeURIComponent(slug)}`;
     const savedNameKey = 'comment-display-name';
+
     let isAdmin = false;
     let activeForm: HTMLElement | null = null;
-    const mainName = form.elements.namedItem('name') as HTMLInputElement;
-    mainName.value = localStorage.getItem(savedNameKey) ?? '';
+
+    const mainName =
+      form.elements.namedItem('name') as HTMLInputElement;
+
+    mainName.value =
+      localStorage.getItem(savedNameKey) ?? '';
+
+    function parseDatabaseDate(value: string) {
+      const normalized = value.replace(' ', 'T');
+
+      if (
+        normalized.endsWith('Z') ||
+        /[+-]\d\d:\d\d$/.test(normalized)
+      ) {
+        return new Date(normalized);
+      }
+
+      return new Date(`${normalized}Z`);
+    }
 
     function formatDate(value: string) {
       return new Intl.DateTimeFormat('zh-TW', {
-        year: 'numeric', month: 'numeric', day: 'numeric',
-        hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Taipei'
-      }).format(new Date(value.replace(' ', 'T') + 'Z'));
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Taipei'
+      }).format(parseDatabaseDate(value));
     }
 
-    function makeButton(label: string, className: string, click: () => void) {
+    function makeButton(
+      label: string,
+      className: string,
+      click: () => void
+    ) {
       const button = document.createElement('button');
+
       button.type = 'button';
       button.className = className;
       button.textContent = label;
+
       button.addEventListener('click', click);
+
       return button;
     }
 
-    function likeButton(id: number, count: number, kind: 'comment' | 'legacy' | 'reply') {
-      const key = kind === 'comment' ? `comment-liked-${id}` :
-        kind === 'legacy' ? `comment-reply-liked:${id}` : `thread-reply-liked:${id}`;
-      let liked = localStorage.getItem(key) === '1';
-      const button = makeButton(`${liked ? '♥' : '♡'} ${count}`, 'comment-like', async () => {
-        button.disabled = true;
-        try {
-          const action = kind === 'comment' ? (liked ? 'unlike' : 'like') :
-            kind === 'legacy' ? (liked ? 'reply-unlike' : 'reply-like') :
-            (liked ? 'thread-unlike' : 'thread-like');
-          const response = await fetch(apiUrl, {
-            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, action })
-          });
-          const result = await response.json();
-          const value = kind === 'legacy' ? result.reply_likes : result.likes;
-          if (!response.ok || typeof value !== 'number') throw new Error();
-          liked = !liked;
-          if (liked) localStorage.setItem(key, '1');
-          else localStorage.removeItem(key);
-          button.classList.toggle('liked', liked);
-          button.textContent = `${liked ? '♥' : '♡'} ${value}`;
-        } catch {
-          // Keep the previous count when the request fails.
-        } finally {
-          button.disabled = false;
-        }
-      });
-      button.classList.toggle('liked', liked);
-      return button;
+    /* ======================================================
+       Comment editing
+       ====================================================== */
+
+    function editTokenKey(id: number) {
+      return `comment-edit-token:${id}`;
     }
 
-    function openReplyForm(comment: ThreadComment, target: Target, thread: HTMLElement, after?: HTMLElement, depth = 0) {
+    function remainingEditTime(comment: ThreadComment) {
+      if (isAdmin) return Infinity;
+
+      const created =
+        parseDatabaseDate(comment.created_at).getTime();
+
+      return EDIT_WINDOW_MS - (Date.now() - created);
+    }
+
+    function canEditComment(comment: ThreadComment) {
+      // Henry can edit only Henry-owned root comments, with no time limit.
+      if (comment.is_owner === 1) return isAdmin;
+
+      // When logged in as admin, Henry cannot edit visitor comments.
+      if (isAdmin) return false;
+
+      const token =
+        localStorage.getItem(editTokenKey(comment.id));
+
+      if (!token) return false;
+
+      return remainingEditTime(comment) > 0;
+    }
+
+    function addEditedMark(
+      element: HTMLElement,
+      editedAt: string | null
+    ) {
+      if (!editedAt) return;
+
+      const edited = document.createElement('span');
+
+      edited.className = 'comment-edited';
+      edited.textContent = '已編輯';
+
+      element.appendChild(edited);
+    }
+
+    function openEditCommentForm(
+      comment: ThreadComment,
+      article: HTMLElement
+    ) {
       activeForm?.remove();
-      const replyForm = document.createElement('form');
-      replyForm.className = 'comment-reply-form';
-      replyForm.style.marginLeft = `${depth}rem`;
-      activeForm = replyForm;
+
+      const editForm = document.createElement('form');
+
+      editForm.className =
+        'comment-reply-form comment-edit-form';
+
+      activeForm = editForm;
 
       const heading = document.createElement('div');
+
       heading.className = 'reply-form-heading';
-      heading.textContent = `回覆 ${target.name}`;
-      const cancel = makeButton('取消', 'comment-cancel', () => {
-        replyForm.remove();
-        activeForm = null;
+      heading.textContent = '修改留言';
+
+      const cancel = makeButton(
+        '取消',
+        'comment-cancel',
+        () => {
+          editForm.remove();
+          activeForm = null;
+        }
+      );
+
+      heading.appendChild(cancel);
+      editForm.appendChild(heading);
+
+      const textarea = document.createElement('textarea');
+
+      textarea.value = comment.message;
+      textarea.rows = 4;
+      textarea.maxLength = 1000;
+      textarea.required = true;
+
+      editForm.appendChild(textarea);
+
+      const row = document.createElement('div');
+
+      row.className = 'comment-submit-row';
+
+      const feedback = document.createElement('span');
+
+      feedback.className = 'comment-status';
+
+      const save = document.createElement('button');
+
+      save.type = 'submit';
+      save.textContent = '儲存';
+
+      row.append(feedback, save);
+      editForm.appendChild(row);
+
+      editForm.addEventListener(
+        'submit',
+        async (event) => {
+          event.preventDefault();
+
+          const message = textarea.value.trim();
+
+          if (!message) return;
+
+          save.disabled = true;
+          feedback.textContent = '儲存中⋯⋯';
+
+          try {
+            const editToken =
+              localStorage.getItem(
+                editTokenKey(comment.id)
+              ) ?? '';
+
+            const response = await fetch(apiUrl, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                id: comment.id,
+                action: 'edit',
+                message,
+                editToken
+              })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+              throw new Error(
+                result.error || '修改失敗'
+              );
+            }
+
+            activeForm = null;
+
+            await loadComments();
+
+          } catch (error) {
+            feedback.textContent =
+              error instanceof Error
+                ? error.message
+                : '修改失敗';
+
+            save.disabled = false;
+          }
+        }
+      );
+
+      const actions =
+        article.querySelector('.comment-actions');
+
+      if (actions) {
+        actions.after(editForm);
+      } else {
+        article.appendChild(editForm);
+      }
+
+      textarea.focus();
+
+      editForm.scrollIntoView({
+        block: 'nearest',
+        behavior: 'smooth'
       });
+    }
+
+    function makeCommentEditControls(
+      comment: ThreadComment,
+      article: HTMLElement
+    ) {
+      const wrapper = document.createElement('span');
+      wrapper.className = 'comment-edit-controls';
+
+      const button = makeButton(
+        '編輯',
+        'comment-edit-button',
+        () => openEditCommentForm(
+          comment,
+          article
+        )
+      );
+
+      wrapper.appendChild(button);
+
+      /*
+       * Henry 自己的留言：永久可編輯，不顯示截止時間。
+       * 訪客自己的留言：顯示「(HH:MM 前可編輯)」，60 分鐘後整組消失。
+       */
+      if (!(comment.is_owner === 1 && isAdmin)) {
+        const created =
+          parseDatabaseDate(comment.created_at);
+
+        const deadline = new Date(
+          created.getTime() + EDIT_WINDOW_MS
+        );
+
+        const deadlineText =
+          document.createElement('span');
+
+        deadlineText.className =
+          'comment-edit-deadline';
+
+        deadlineText.textContent =
+          `(${new Intl.DateTimeFormat('zh-TW', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+            timeZone: 'Asia/Taipei'
+          }).format(deadline)} 前可編輯)`;
+
+        wrapper.appendChild(deadlineText);
+
+        const remaining =
+          remainingEditTime(comment);
+
+        if (remaining > 0) {
+          window.setTimeout(() => {
+            wrapper.remove();
+
+            if (
+              activeForm?.classList.contains(
+                'comment-edit-form'
+              )
+            ) {
+              activeForm.remove();
+              activeForm = null;
+            }
+          }, remaining);
+        }
+      }
+
+      return wrapper;
+    }
+
+    /* ======================================================
+       Likes
+       ====================================================== */
+
+    function likeButton(
+      id: number,
+      count: number,
+      kind: 'comment' | 'legacy' | 'reply'
+    ) {
+      const key =
+        kind === 'comment'
+          ? `comment-liked-${id}`
+          : kind === 'legacy'
+            ? `comment-reply-liked:${id}`
+            : `thread-reply-liked:${id}`;
+
+      let liked =
+        localStorage.getItem(key) === '1';
+
+      const button = makeButton(
+        `${liked ? '♥' : '♡'} ${count}`,
+        'comment-like',
+        async () => {
+          button.disabled = true;
+
+          try {
+            const action =
+              kind === 'comment'
+                ? liked
+                  ? 'unlike'
+                  : 'like'
+                : kind === 'legacy'
+                  ? liked
+                    ? 'reply-unlike'
+                    : 'reply-like'
+                  : liked
+                    ? 'thread-unlike'
+                    : 'thread-like';
+
+            const response = await fetch(apiUrl, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                id,
+                action
+              })
+            });
+
+            const result =
+              await response.json();
+
+            const value =
+              kind === 'legacy'
+                ? result.reply_likes
+                : result.likes;
+
+            if (
+              !response.ok ||
+              typeof value !== 'number'
+            ) {
+              throw new Error();
+            }
+
+            liked = !liked;
+
+            if (liked) {
+              localStorage.setItem(key, '1');
+            } else {
+              localStorage.removeItem(key);
+            }
+
+            button.classList.toggle(
+              'liked',
+              liked
+            );
+
+            button.textContent =
+              `${liked ? '♥' : '♡'} ${value}`;
+
+          } catch {
+            // Keep previous count on failure.
+          } finally {
+            button.disabled = false;
+          }
+        }
+      );
+
+      button.classList.toggle(
+        'liked',
+        liked
+      );
+
+      return button;
+    }
+
+    /* ======================================================
+       Reply form
+       ====================================================== */
+
+    function openReplyForm(
+      comment: ThreadComment,
+      target: Target,
+      thread: HTMLElement,
+      after?: HTMLElement,
+      depth = 0
+    ) {
+      activeForm?.remove();
+
+      const replyForm =
+        document.createElement('form');
+
+      replyForm.className =
+        'comment-reply-form';
+
+      replyForm.style.marginLeft =
+        `${depth}rem`;
+
+      activeForm = replyForm;
+
+      const heading =
+        document.createElement('div');
+
+      heading.className =
+        'reply-form-heading';
+
+      heading.textContent =
+        `回覆 ${target.name}`;
+
+      const cancel = makeButton(
+        '取消',
+        'comment-cancel',
+        () => {
+          replyForm.remove();
+          activeForm = null;
+        }
+      );
+
       heading.appendChild(cancel);
       replyForm.appendChild(heading);
 
-      let nameInput: HTMLInputElement | null = null;
+      let nameInput:
+        HTMLInputElement | null = null;
+
       if (isAdmin) {
-        const owner = document.createElement('span');
-        owner.textContent = '以 [Henry] 回覆';
+        const owner =
+          document.createElement('span');
+
+        owner.textContent =
+          '以 [Henry] 回覆';
+
         replyForm.appendChild(owner);
+
       } else {
-        const label = document.createElement('label');
-        label.textContent = '您希望如何被稱呼？';
-        nameInput = document.createElement('input');
+        const label =
+          document.createElement('label');
+
+        label.textContent =
+          '您希望如何被稱呼？';
+
+        nameInput =
+          document.createElement('input');
+
         nameInput.name = 'name';
         nameInput.maxLength = 40;
         nameInput.required = true;
-        nameInput.value = localStorage.getItem(savedNameKey) ?? '';
+
+        nameInput.value =
+          localStorage.getItem(
+            savedNameKey
+          ) ?? '';
+
         label.appendChild(nameInput);
         replyForm.appendChild(label);
       }
-      const label = document.createElement('label');
+
+      const label =
+        document.createElement('label');
+
       label.textContent = '回覆內容';
-      const textarea = document.createElement('textarea');
+
+      const textarea =
+        document.createElement('textarea');
+
       textarea.name = 'message';
       textarea.rows = 3;
       textarea.maxLength = 1000;
       textarea.required = true;
+
       label.appendChild(textarea);
       replyForm.appendChild(label);
 
-      const row = document.createElement('div');
-      row.className = 'comment-submit-row';
-      const feedback = document.createElement('span');
-      feedback.className = 'comment-status';
-      const send = document.createElement('button');
+      const row =
+        document.createElement('div');
+
+      row.className =
+        'comment-submit-row';
+
+      const feedback =
+        document.createElement('span');
+
+      feedback.className =
+        'comment-status';
+
+      const send =
+        document.createElement('button');
+
       send.type = 'submit';
       send.textContent = '送出回覆';
+
       row.append(feedback, send);
       replyForm.appendChild(row);
-      replyForm.addEventListener('submit', async (event) => {
+
+      replyForm.addEventListener(
+        'submit',
+        async (event) => {
+          event.preventDefault();
+
+          const name =
+            isAdmin
+              ? 'Henry'
+              : nameInput?.value.trim();
+
+          const message =
+            textarea.value.trim();
+
+          if (!name || !message) return;
+
+          send.disabled = true;
+          feedback.textContent =
+            '送出中⋯⋯';
+
+          try {
+            const response =
+              await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type':
+                    'application/json'
+                },
+                body: JSON.stringify({
+                  comment_id: comment.id,
+                  target_type: target.type,
+                  target_id: target.id,
+                  name,
+                  message
+                })
+              });
+
+            const result =
+              await response.json();
+
+            if (!response.ok) {
+              throw new Error(
+                result.error ||
+                '回覆失敗'
+              );
+            }
+
+            if (!isAdmin) {
+              localStorage.setItem(
+                savedNameKey,
+                name
+              );
+            }
+
+            activeForm = null;
+
+            await loadComments();
+
+          } catch (error) {
+            feedback.textContent =
+              error instanceof Error
+                ? error.message
+                : '回覆失敗';
+
+            send.disabled = false;
+          }
+        }
+      );
+
+      if (after) {
+        after.after(replyForm);
+      } else {
+        thread.prepend(replyForm);
+      }
+
+      (
+        nameInput && !nameInput.value
+          ? nameInput
+          : textarea
+      ).focus();
+
+      replyForm.scrollIntoView({
+        block: 'nearest',
+        behavior: 'smooth'
+      });
+    }
+
+    function openThreadEditForm(
+      entry: Reply,
+      item: HTMLElement
+    ) {
+      activeForm?.remove();
+
+      const edit = document.createElement('form');
+      edit.className = 'comment-reply-form';
+      activeForm = edit;
+
+      const heading = document.createElement('div');
+      heading.className = 'reply-form-heading';
+      heading.textContent = '修改回覆';
+
+      const cancel = makeButton(
+        '取消',
+        'comment-cancel',
+        () => {
+          edit.remove();
+          activeForm = null;
+        }
+      );
+
+      heading.appendChild(cancel);
+      edit.appendChild(heading);
+
+      const textarea = document.createElement('textarea');
+      textarea.value = entry.message;
+      textarea.maxLength = 1000;
+      textarea.required = true;
+      textarea.rows = 3;
+      edit.appendChild(textarea);
+
+      const row = document.createElement('div');
+      row.className = 'comment-submit-row';
+
+      const feedback = document.createElement('span');
+      feedback.className = 'comment-status';
+
+      const save = document.createElement('button');
+      save.type = 'submit';
+      save.textContent = '儲存';
+
+      row.append(feedback, save);
+      edit.appendChild(row);
+
+      edit.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const name = isAdmin ? 'Henry' : nameInput?.value.trim();
+
         const message = textarea.value.trim();
-        if (!name || !message) return;
-        send.disabled = true;
-        feedback.textContent = '送出中⋯⋯';
+        if (!message) return;
+
+        save.disabled = true;
+        feedback.textContent = '儲存中⋯⋯';
+
         try {
           const response = await fetch(apiUrl, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              comment_id: comment.id, target_type: target.type,
-              target_id: target.id, name, message
+              id: entry.id,
+              action: 'thread-edit',
+              message
             })
           });
+
           const result = await response.json();
-          if (!response.ok) throw new Error(result.error || '回覆失敗');
-          if (!isAdmin) localStorage.setItem(savedNameKey, name);
+
+          if (!response.ok) {
+            throw new Error(result.error || '修改失敗');
+          }
+
           activeForm = null;
           await loadComments();
         } catch (error) {
-          feedback.textContent = error instanceof Error ? error.message : '回覆失敗';
-          send.disabled = false;
+          feedback.textContent =
+            error instanceof Error ? error.message : '修改失敗';
+          save.disabled = false;
         }
       });
-      if (after) after.after(replyForm);
-      else thread.prepend(replyForm);
-      (nameInput && !nameInput.value ? nameInput : textarea).focus();
-      replyForm.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+      item.appendChild(edit);
+      textarea.focus();
     }
 
-    function renderEntry(comment: ThreadComment, entry: Reply | null, thread: HTMLElement, depth: number) {
+    /* ======================================================
+       Thread entries
+       ====================================================== */
+
+    function renderEntry(
+      comment: ThreadComment,
+      entry: Reply | null,
+      thread: HTMLElement,
+      depth: number
+    ) {
       const legacy = entry === null;
-      const target: Target = legacy ? { type: 'legacy', id: comment.id, name: '[Henry]' } :
-        { type: 'reply', id: entry.id, name: entry.is_owner ? '[Henry]' : entry.name };
-      const item = document.createElement('div');
-      item.className = 'comment-thread-entry';
-      item.style.marginLeft = `${depth - 1}rem`;
-      const header = document.createElement('div');
-      header.className = 'comment-header';
-      const name = document.createElement('strong');
-      name.textContent = legacy || entry.is_owner ? '[Henry]' : entry.name;
-      header.appendChild(name);
-      const to = document.createElement('span');
-      to.className = 'comment-to';
-      if (legacy) to.textContent = `→ ${comment.name}`;
-      else if (entry.target_type === 'comment') to.textContent = `→ ${comment.name}`;
-      else if (entry.target_type === 'legacy') to.textContent = '→ [Henry]';
-      else {
-        const recipient = comment.replies.find((r) => r.id === entry.target_id);
-        to.textContent = `→ ${recipient ? recipient.is_owner ? '[Henry]' : recipient.name : '留言者'}`;
-      }
-      header.appendChild(to);
-      const time = document.createElement('time');
-      time.textContent = formatDate(legacy ? comment.reply_updated_at ?? comment.created_at : entry.created_at);
-      header.appendChild(time);
-      const message = document.createElement('p');
-      message.className = 'comment-message';
-      message.textContent = legacy ? comment.reply : entry.message;
-      const actions = document.createElement('div');
-      actions.className = 'comment-actions';
-      actions.appendChild(likeButton(legacy ? comment.id : entry.id,
-        legacy ? comment.reply_likes : entry.likes, legacy ? 'legacy' : 'reply'));
-      actions.appendChild(makeButton('回覆', 'comment-reply-button',
-        () => openReplyForm(comment, target, thread, item, depth)));
-      if (legacy && isAdmin) {
-        actions.appendChild(makeButton('修改回覆', 'comment-edit-button', () => {
-          activeForm?.remove();
-          const edit = document.createElement('form');
-          edit.className = 'comment-reply-form';
-          activeForm = edit;
-          const textarea = document.createElement('textarea');
-          textarea.value = comment.reply ?? '';
-          textarea.maxLength = 1000;
-          textarea.required = true;
-          textarea.rows = 3;
-          const send = document.createElement('button');
-          send.textContent = '儲存';
-          const cancel = makeButton('取消', 'comment-cancel', () => {
-            edit.remove(); activeForm = null;
-          });
-          edit.append(textarea, send, cancel);
-          edit.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            send.disabled = true;
-            try {
-              const response = await fetch(apiUrl, {
-                method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: comment.id, action: 'reply', reply: textarea.value.trim() })
-              });
-              const result = await response.json();
-              if (!response.ok) throw new Error(result.error || '修改失敗');
-              activeForm = null;
-              await loadComments();
-            } catch (error) {
-              alert(error instanceof Error ? error.message : '修改失敗');
-              send.disabled = false;
+
+      const target: Target =
+        legacy
+          ? {
+              type: 'legacy',
+              id: comment.id,
+              name: '[Henry]'
             }
-          });
-          item.appendChild(edit);
-          textarea.focus();
-        }));
+          : {
+              type: 'reply',
+              id: entry.id,
+              name: entry.is_owner
+                ? '[Henry]'
+                : entry.name
+            };
+
+      const item =
+        document.createElement('div');
+
+      item.className =
+        'comment-thread-entry';
+
+      item.style.marginLeft =
+        `${depth - 1}rem`;
+
+      const header =
+        document.createElement('div');
+
+      header.className =
+        'comment-header';
+
+      const name =
+        document.createElement('strong');
+
+      name.textContent =
+        legacy || entry.is_owner
+          ? '[Henry]'
+          : entry.name;
+
+      header.appendChild(name);
+
+      const to =
+        document.createElement('span');
+
+      to.className = 'comment-to';
+
+      if (legacy) {
+        to.textContent =
+          `→ ${comment.name}`;
+      } else if (
+        entry.target_type === 'comment'
+      ) {
+        to.textContent =
+          `→ ${comment.name}`;
+      } else if (
+        entry.target_type === 'legacy'
+      ) {
+        to.textContent =
+          '→ [Henry]';
+      } else {
+        const recipient =
+          comment.replies.find(
+            (r) =>
+              r.id === entry.target_id
+          );
+
+        to.textContent =
+          `→ ${
+            recipient
+              ? recipient.is_owner
+                ? '[Henry]'
+                : recipient.name
+              : '留言者'
+          }`;
       }
-      item.append(header, message, actions);
+
+      header.appendChild(to);
+
+      const time =
+        document.createElement('time');
+
+      time.textContent =
+        formatDate(
+          legacy
+            ? comment.reply_updated_at ??
+              comment.created_at
+            : entry.created_at
+        );
+
+      header.appendChild(time);
+
+      const message =
+        document.createElement('p');
+
+      message.className =
+        'comment-message';
+
+      message.textContent =
+        legacy
+          ? comment.reply
+          : entry.message;
+
+      const actions =
+        document.createElement('div');
+
+      actions.className =
+        'comment-actions';
+
+      actions.appendChild(
+        likeButton(
+          legacy
+            ? comment.id
+            : entry.id,
+          legacy
+            ? comment.reply_likes
+            : entry.likes,
+          legacy
+            ? 'legacy'
+            : 'reply'
+        )
+      );
+
+      actions.appendChild(
+        makeButton(
+          '回覆',
+          'comment-reply-button',
+          () =>
+            openReplyForm(
+              comment,
+              target,
+              thread,
+              item,
+              depth
+            )
+        )
+      );
+
+      if (!legacy && entry.is_owner && isAdmin) {
+        actions.appendChild(
+          makeButton(
+            '編輯',
+            'comment-edit-button',
+            () => openThreadEditForm(entry, item)
+          )
+        );
+      }
+
+      /*
+       * Existing Henry legacy reply editing.
+       */
+      if (legacy && isAdmin) {
+        actions.appendChild(
+          makeButton(
+            '修改回覆',
+            'comment-edit-button',
+            () => {
+              activeForm?.remove();
+
+              const edit =
+                document.createElement(
+                  'form'
+                );
+
+              edit.className =
+                'comment-reply-form';
+
+              activeForm = edit;
+
+              const textarea =
+                document.createElement(
+                  'textarea'
+                );
+
+              textarea.value =
+                comment.reply ?? '';
+
+              textarea.maxLength = 1000;
+              textarea.required = true;
+              textarea.rows = 3;
+
+              const send =
+                document.createElement(
+                  'button'
+                );
+
+              send.textContent = '儲存';
+
+              const cancel =
+                makeButton(
+                  '取消',
+                  'comment-cancel',
+                  () => {
+                    edit.remove();
+                    activeForm = null;
+                  }
+                );
+
+              edit.append(
+                textarea,
+                send,
+                cancel
+              );
+
+              edit.addEventListener(
+                'submit',
+                async (event) => {
+                  event.preventDefault();
+
+                  send.disabled = true;
+
+                  try {
+                    const response =
+                      await fetch(
+                        apiUrl,
+                        {
+                          method:
+                            'PATCH',
+                          headers: {
+                            'Content-Type':
+                              'application/json'
+                          },
+                          body:
+                            JSON.stringify(
+                              {
+                                id:
+                                  comment.id,
+                                action:
+                                  'reply',
+                                reply:
+                                  textarea
+                                    .value
+                                    .trim()
+                              }
+                            )
+                        }
+                      );
+
+                    const result =
+                      await response.json();
+
+                    if (!response.ok) {
+                      throw new Error(
+                        result.error ||
+                        '修改失敗'
+                      );
+                    }
+
+                    activeForm = null;
+
+                    await loadComments();
+
+                  } catch (error) {
+                    alert(
+                      error instanceof Error
+                        ? error.message
+                        : '修改失敗'
+                    );
+
+                    send.disabled =
+                      false;
+                  }
+                }
+              );
+
+              item.appendChild(edit);
+              textarea.focus();
+            }
+          )
+        );
+      }
+
+      item.append(
+        header,
+        message,
+        actions
+      );
+
       return item;
     }
 
-    function orderThreadEntries(comment: ThreadComment): Array<{ reply: Reply | null; depth: number }> {
-      const entries: Array<{ time: string; id: number; reply: Reply | null }> =
-        comment.replies.map((reply) => ({ time: reply.created_at, id: reply.id, reply }));
-      if (comment.reply) entries.push({
-        time: comment.reply_updated_at ?? comment.created_at,
-        id: 0, reply: null
-      });
-      entries.sort((a, b) => a.time.localeCompare(b.time) || a.id - b.id);
-      const replyIds = new Set(comment.replies.map((reply) => reply.id));
-      const children = new Map<string, typeof entries>();
+    /* ======================================================
+       Thread ordering
+       ====================================================== */
+
+    function orderThreadEntries(
+      comment: ThreadComment
+    ): Array<{
+      reply: Reply | null;
+      depth: number;
+    }> {
+      const entries: Array<{
+        time: string;
+        id: number;
+        reply: Reply | null;
+      }> =
+        comment.replies.map(
+          (reply) => ({
+            time: reply.created_at,
+            id: reply.id,
+            reply
+          })
+        );
+
+      if (comment.reply) {
+        entries.push({
+          time:
+            comment.reply_updated_at ??
+            comment.created_at,
+          id: 0,
+          reply: null
+        });
+      }
+
+      entries.sort(
+        (a, b) =>
+          a.time.localeCompare(b.time) ||
+          a.id - b.id
+      );
+
+      const replyIds =
+        new Set(
+          comment.replies.map(
+            (reply) => reply.id
+          )
+        );
+
+      const children =
+        new Map<
+          string,
+          typeof entries
+        >();
+
       for (const entry of entries) {
         const reply = entry.reply;
+
         let parent = 'root';
-        if (reply?.target_type === 'legacy' && comment.reply) parent = 'legacy';
-        if (reply?.target_type === 'reply' && replyIds.has(reply.target_id)) {
-          parent = `reply:${reply.target_id}`;
+
+        if (
+          reply?.target_type ===
+            'legacy' &&
+          comment.reply
+        ) {
+          parent = 'legacy';
         }
-        const siblings = children.get(parent) ?? [];
+
+        if (
+          reply?.target_type ===
+            'reply' &&
+          replyIds.has(reply.target_id)
+        ) {
+          parent =
+            `reply:${reply.target_id}`;
+        }
+
+        const siblings =
+          children.get(parent) ?? [];
+
         siblings.push(entry);
-        children.set(parent, siblings);
+
+        children.set(
+          parent,
+          siblings
+        );
       }
-      const ordered: Array<{ reply: Reply | null; depth: number }> = [];
-      const shown = new Set<string>();
-      function showBranch(entry: (typeof entries)[number], depth: number) {
-        const key = entry.reply ? `reply:${entry.id}` : 'legacy';
+
+      const ordered: Array<{
+        reply: Reply | null;
+        depth: number;
+      }> = [];
+
+      const shown =
+        new Set<string>();
+
+      function showBranch(
+        entry:
+          (typeof entries)[number],
+        depth: number
+      ) {
+        const key =
+          entry.reply
+            ? `reply:${entry.id}`
+            : 'legacy';
+
         if (shown.has(key)) return;
+
         shown.add(key);
-        ordered.push({ reply: entry.reply, depth });
-        for (const child of children.get(key) ?? []) showBranch(child, depth + 1);
+
+        ordered.push({
+          reply: entry.reply,
+          depth
+        });
+
+        for (
+          const child of
+          children.get(key) ?? []
+        ) {
+          showBranch(
+            child,
+            depth + 1
+          );
+        }
       }
-      for (const entry of children.get('root') ?? []) showBranch(entry, 1);
-      // Keep orphaned replies visible even if older data has a missing target.
-      for (const entry of entries) showBranch(entry, 1);
+
+      for (
+        const entry of
+        children.get('root') ?? []
+      ) {
+        showBranch(entry, 1);
+      }
+
+      // Keep orphaned replies visible.
+      for (const entry of entries) {
+        showBranch(entry, 1);
+      }
+
       return ordered;
     }
 
+    /* ======================================================
+       Load and render comments
+       ====================================================== */
+
     async function loadComments() {
       try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error();
-        const comments = await response.json() as ThreadComment[];
+        const response =
+          await fetch(apiUrl);
+
+        if (!response.ok) {
+          throw new Error();
+        }
+
+        const comments = (await response.json()) as ThreadComment[];
+
         list!.replaceChildren();
+
         if (comments.length === 0) {
-          const empty = document.createElement('p');
-          empty.className = 'comment-empty';
-          empty.textContent = '還沒有留言。';
+          const empty =
+            document.createElement('p');
+
+          empty.className =
+            'comment-empty';
+
+          empty.textContent =
+            '還沒有留言。';
+
           list!.appendChild(empty);
+
           return;
         }
-        for (const comment of comments) {
-          const article = document.createElement('article');
-          article.className = 'comment-item';
-          const header = document.createElement('div');
-          header.className = 'comment-header';
-          const name = document.createElement('strong');
-          name.textContent = comment.name;
-          const time = document.createElement('time');
-          time.textContent = formatDate(comment.created_at);
-          header.append(name, time);
-          const message = document.createElement('p');
-          message.className = 'comment-message';
-          message.textContent = comment.message;
-          const actions = document.createElement('div');
-          actions.className = 'comment-actions';
-          actions.appendChild(likeButton(comment.id, comment.likes, 'comment'));
-          const thread = document.createElement('div');
-          thread.className = 'comment-thread';
-          actions.appendChild(makeButton('回覆', 'comment-reply-button',
-            () => openReplyForm(comment, { type: 'comment', id: comment.id, name: comment.name }, thread)));
-          article.append(header, message, actions, thread);
 
-          for (const entry of orderThreadEntries(comment)) {
-            thread.appendChild(renderEntry(comment, entry.reply, thread, entry.depth));
+        for (const comment of comments) {
+          const article =
+            document.createElement(
+              'article'
+            );
+
+          article.className =
+            'comment-item';
+
+          const header =
+            document.createElement(
+              'div'
+            );
+
+          header.className =
+            'comment-header';
+
+          const name =
+            document.createElement(
+              'strong'
+            );
+
+          name.textContent =
+            comment.name;
+
+          const time =
+            document.createElement(
+              'time'
+            );
+
+          time.textContent =
+            formatDate(
+              comment.created_at
+            );
+
+          header.append(
+            name,
+            time
+          );
+
+          const message =
+            document.createElement('p');
+
+          message.className =
+            'comment-message';
+
+          const messageText =
+            document.createElement(
+              'span'
+            );
+
+          messageText.textContent =
+            comment.message;
+
+          message.appendChild(
+            messageText
+          );
+
+          addEditedMark(
+            message,
+            comment.edited_at
+          );
+
+          const actions =
+            document.createElement(
+              'div'
+            );
+
+          actions.className =
+            'comment-actions';
+
+          actions.appendChild(
+            likeButton(
+              comment.id,
+              comment.likes,
+              'comment'
+            )
+          );
+
+          const thread =
+            document.createElement(
+              'div'
+            );
+
+          thread.className =
+            'comment-thread';
+
+          actions.appendChild(
+            makeButton(
+              '回覆',
+              'comment-reply-button',
+              () =>
+                openReplyForm(
+                  comment,
+                  {
+                    type: 'comment',
+                    id: comment.id,
+                    name:
+                      comment.name
+                  },
+                  thread
+                )
+            )
+          );
+
+          /*
+           * Edit appears:
+           * - Henry only for Henry-owned root comments
+           * - visitors only for their own token-backed comments
+           *   within 60 minutes
+           */
+          if (
+            canEditComment(comment)
+          ) {
+            actions.appendChild(
+              makeCommentEditControls(
+                comment,
+                article
+              )
+            );
           }
-          list!.appendChild(article);
+
+          article.append(
+            header,
+            message,
+            actions,
+            thread
+          );
+
+          for (
+            const entry of
+            orderThreadEntries(
+              comment
+            )
+          ) {
+            thread.appendChild(
+              renderEntry(
+                comment,
+                entry.reply,
+                thread,
+                entry.depth
+              )
+            );
+          }
+
+          list!.appendChild(
+            article
+          );
         }
+
       } catch {
-        list!.textContent = '留言載入失敗，請稍後再試。';
+        list!.textContent =
+          '留言載入失敗，請稍後再試。';
       }
     }
 
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
-      const data = new FormData(form);
-      const name = String(data.get('name') ?? '').trim();
-      const message = String(data.get('message') ?? '').trim();
-      if (!name || !message) return;
-      status.textContent = '送出中⋯⋯';
-      if (button) button.disabled = true;
-      try {
-        const response = await fetch(apiUrl, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, message })
-        });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || '留言送出失敗');
-        localStorage.setItem(savedNameKey, name);
-        form.reset();
-        mainName.value = name;
-        status.textContent = '留言已送出。';
-        await loadComments();
-      } catch (error) {
-        status.textContent = error instanceof Error ? error.message : '留言送出失敗';
-      } finally {
-        if (button) button.disabled = false;
-      }
-    });
+    /* ======================================================
+       New root comment
+       ====================================================== */
 
+    form.addEventListener(
+      'submit',
+      async (event) => {
+        event.preventDefault();
+
+        const button =
+          form.querySelector<HTMLButtonElement>(
+            'button[type="submit"]'
+          );
+
+        const data =
+          new FormData(form);
+
+        const name =
+          String(
+            data.get('name') ?? ''
+          ).trim();
+
+        const message =
+          String(
+            data.get('message') ?? ''
+          ).trim();
+
+        if (!name || !message) {
+          return;
+        }
+
+        /*
+         * Generate a private edit token.
+         * Browser keeps the real token.
+         * D1 stores only its SHA-256 hash.
+         */
+        const editToken =
+          isAdmin ? '' : crypto.randomUUID();
+
+        status.textContent =
+          '送出中⋯⋯';
+
+        if (button) {
+          button.disabled = true;
+        }
+
+        try {
+          const response =
+            await fetch(apiUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type':
+                  'application/json'
+              },
+              body: JSON.stringify({
+                name,
+                message,
+                editToken
+              })
+            });
+
+          const result =
+            await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              result.error ||
+              '留言送出失敗'
+            );
+          }
+
+          /*
+           * Store token only after D1
+           * successfully created the comment.
+           */
+          if (result.id && !isAdmin) {
+            localStorage.setItem(
+              editTokenKey(
+                Number(result.id)
+              ),
+              editToken
+            );
+          }
+
+          localStorage.setItem(
+            savedNameKey,
+            name
+          );
+
+          form.reset();
+
+          mainName.value = name;
+
+          status.textContent =
+            '留言已送出。';
+
+          await loadComments();
+
+        } catch (error) {
+          status.textContent =
+            error instanceof Error
+              ? error.message
+              : '留言送出失敗';
+
+        } finally {
+          if (button) {
+            button.disabled = false;
+          }
+        }
+      }
+    );
+
+    /*
+     * Check Henry admin status before rendering.
+     * Therefore old comments can also display
+     * an Edit button for Henry.
+     */
     try {
-      const response = await fetch('/api/admin-status');
-      if (response.ok) isAdmin = (await response.json()).admin === true;
+      const response =
+        await fetch(
+          '/api/admin-status'
+        );
+
+      if (response.ok) {
+        isAdmin =
+          (await response.json())
+            .admin === true;
+      }
+
+      if (isAdmin) {
+        mainName.value = 'Henry';
+        mainName.readOnly = true;
+      }
+
     } catch {
       isAdmin = false;
     }
+
     await loadComments();
   }
 </script>
@@ -406,11 +1521,10 @@ const { slug } = Astro.props;
     margin-top: 2rem;
   }
 
-
   .comments h2 {
     margin: 0 0 1.25rem;
-     padding-top: 1.5rem;
-     border-top: 1px solid var(--border, #d8d8d8);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border, #d8d8d8);
     font-size: 1.25rem;
   }
 
@@ -423,104 +1537,115 @@ const { slug } = Astro.props;
     opacity: 0.7;
   }
 
-:global(.comment-item) {
-  display: grid;
-  gap: 0.4rem;
-  margin-bottom: 1rem;
-}
+  :global(.comment-item) {
+    display: grid;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
 
-:global(.comment-item p) {
-  margin: 0;
-  padding: 0;
-  white-space: pre-wrap;
-}
+  :global(.comment-item p) {
+    margin: 0;
+    padding: 0;
+    white-space: pre-wrap;
+  }
 
-:global(.comment-message) {
-  margin-bottom: -0.01rem !important;
-}
+  :global(.comment-message) {
+    margin-bottom: -0.01rem !important;
+  }
 
-:global(.comment-like) {
-  appearance: none;
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
-  margin: -0.5rem 0 0 0;
-  justify-self: start;
-  color: inherit;
-  font: inherit;
-  opacity: 0.65;
-  cursor: pointer;
-  box-shadow: none !important;
-}
+  /*
+   * Edited marker
+   */
+  :global(.comment-edited) {
+    display: inline-block;
+    margin-left: 0.5rem;
+    font-size: 0.72rem;
+    opacity: 0.42;
+    white-space: nowrap;
+  }
 
-:global(.comment-like.liked) {
-  color: #ff5c93;
-  opacity: 1;
-}
+  :global(.comment-like) {
+    appearance: none;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: -0.5rem 0 0 0;
+    justify-self: start;
+    color: inherit;
+    font: inherit;
+    opacity: 0.65;
+    cursor: pointer;
+    box-shadow: none !important;
+  }
 
-:global(.comment-reply-button) {
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
-  margin: 0.25rem 0 0 0.8rem;
-  justify-self: start;
-  color: inherit;
-  font: inherit;
-  font-size: 1rem;
-  opacity: 0.65;
-  cursor: pointer;
-  box-shadow: none !important;
-}
+  :global(.comment-like.liked) {
+    color: #ff5c93;
+    opacity: 1;
+  }
 
-:global(.comment-owner-reply) {
-  margin: 0 !important;
-  padding: 0 0 0 1rem !important;
-  border: none !important;
-  border-left: none !important;
-  white-space: pre-wrap;
-  opacity: 0.85;
-}
+  :global(.comment-reply-button) {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0.25rem 0 0 0.8rem;
+    justify-self: start;
+    color: inherit;
+    font: inherit;
+    font-size: 1rem;
+    opacity: 0.65;
+    cursor: pointer;
+    box-shadow: none !important;
+  }
 
-:global(.comment-main-like) {
-  margin-left: 1rem !important;
-}
+  :global(.comment-owner-reply) {
+    margin: 0 !important;
+    padding: 0 0 0 1rem !important;
+    border: none !important;
+    border-left: none !important;
+    white-space: pre-wrap;
+    opacity: 0.85;
+  }
 
-:global(.comment-reply-like) {
-  margin-left: 1rem !important;
-}
+  :global(.comment-main-like) {
+    margin-left: 1rem !important;
+  }
 
-:global(.comment-reply-form) {
-  display: flex;
-  align-items: flex-end;
-  gap: 0.5rem;
-  margin: 0.5rem 0 0.75rem 0;
-  width: 100%;
-}
+  :global(.comment-reply-like) {
+    margin-left: 1rem !important;
+  }
 
-:global(.comment-reply-form textarea) {
-  width: 100%;
-  min-height: 5rem;
-  box-sizing: border-box;
-  padding: 0.7rem 0.8rem;
-  font: inherit;
-  font-size: 1rem;
-  line-height: 1.6;
-  color: inherit;
-  background: transparent;
-  border: 1px solid var(--border, #aaa);
-  border-radius: 6px;
-  resize: vertical;
-}
+  :global(.comment-reply-form) {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin: 0.5rem 0 0.75rem 0;
+    width: 100%;
+  }
 
-:global(.comment-reply-form button) {
-  flex: 0 0 auto;
-  padding: 0.55rem 0.8rem;
-  font: inherit;
-  font-size: 1rem;
-  cursor: pointer;
-}
+  :global(.comment-reply-form textarea) {
+    width: 100%;
+    min-height: 5rem;
+    box-sizing: border-box;
+    padding: 0.7rem 0.8rem;
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: inherit;
+    background: transparent;
+    border: 1px solid var(--border, #aaa);
+    border-radius: 6px;
+    resize: vertical;
+  }
+
+  :global(.comment-reply-form button) {
+    flex: 0 0 auto;
+    padding: 0.55rem 0.8rem;
+    font: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+  }
 
   :global(.comment-header) {
     display: flex;
@@ -533,7 +1658,6 @@ const { slug } = Astro.props;
     font-size: 0.85rem;
     opacity: 0.6;
   }
-
 
   .comment-form {
     display: grid;
@@ -584,123 +1708,168 @@ const { slug } = Astro.props;
     opacity: 0.5;
   }
 
-/* Henry 管理操作按鈕 */
-:global(.comment-reply-button),
-:global(.comment-reply-form button) {
-  appearance: none !important;
-  -webkit-appearance: none !important;
+  /* Henry 管理操作按鈕 */
+  :global(.comment-reply-button),
+  :global(.comment-reply-form button) {
+    appearance: none !important;
+    -webkit-appearance: none !important;
 
-  background: #1f5a43 !important;
-  border: 1px solid #2f8a63 !important;
-  border-radius: 4px;
+    background: #1f5a43 !important;
+    border: 1px solid #2f8a63 !important;
+    border-radius: 4px;
 
-  color: #fff !important;
+    color: #fff !important;
 
-  padding: 0.35rem 0.7rem !important;
-  font: inherit;
-  font-size: 0.9rem;
+    padding: 0.35rem 0.7rem !important;
+    font: inherit;
+    font-size: 0.9rem;
 
-  opacity: 1;
-  cursor: pointer;
-  box-shadow: none !important;
-}
+    opacity: 1;
+    cursor: pointer;
+    box-shadow: none !important;
+  }
 
-/* 滑鼠移上去稍微亮一點 */
-:global(.comment-reply-button:hover),
-:global(.comment-reply-form button:hover) {
-  background: #287454 !important;
-  border-color: #43a979 !important;
-}
+  /* 滑鼠移上去稍微亮一點 */
+  :global(.comment-reply-button:hover),
+  :global(.comment-reply-form button:hover) {
+    background: #287454 !important;
+    border-color: #43a979 !important;
+  }
 
-/* Replies are ordered under their targets and indented one rem per level. */
-:global(.comment-item) {
-  gap: 0;
-  line-height: 1.35;
-  margin-bottom: 1.5rem;
-}
-:global(.comment-item > .comment-header) {
-  margin-bottom: 0;
-}
-:global(.comment-item .comment-message) {
-  margin-bottom: 0 !important;
-  line-height: 1.65;
-}
-:global(.comment-actions) {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  padding-left: 0;
-}
-:global(.comment-actions .comment-like),
-:global(.comment-actions .comment-reply-button) {
-  margin: 0 !important;
-}
-:global(.comment-actions .comment-reply-button),
-:global(.comment-actions .comment-edit-button),
-:global(.reply-form-heading .comment-cancel) {
-  appearance: none !important;
-  background: transparent !important;
-  border: 0 !important;
-  padding: 0 !important;
-  box-shadow: none !important;
-  color: inherit !important;
-  opacity: 0.65;
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.9rem;
-}
-:global(.comment-thread) {
-  display: grid;
-  gap: 0.2rem;
-  margin: 0.5rem 0 0 1rem;
-  padding-left: 0;
-  min-width: 0;
-}
-:global(.comment-thread-entry) {
-  display: grid;
-  gap: 0;
-  line-height: 1.35;
-  min-width: 0;
-}
-:global(.comment-thread-entry .comment-message) {
-  padding-left: 0 !important;
-  border-left: 0 !important;
-}
-:global(.comment-thread-entry .comment-actions) {
-  padding-left: 0;
-}
-:global(.comment-thread-entry .comment-header) {
-  flex-wrap: wrap;
-  gap: 0.25rem 0.5rem;
-  margin-bottom: 0;
-}
-:global(.comment-to) { opacity: 0.7; }
-:global(.comment-reply-form) {
-  display: grid;
-  gap: 0.5rem;
-  margin: 0.4rem 0;
-  min-width: 0;
-}
-:global(.comment-reply-form label) { display: grid; gap: 0.2rem; }
-:global(.comment-reply-form input),
-:global(.comment-reply-form textarea) {
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  padding: 0.7rem 0.8rem;
-  font: inherit;
-  color: inherit;
-  background: transparent;
-  border: 1px solid var(--border, #aaa);
-  border-radius: 6px;
-}
-:global(.reply-form-heading),
-:global(.comment-reply-form .comment-submit-row) {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.7rem;
-}
-:global(.reply-form-heading) { font-weight: 600; }
-:global(.comment-reply-form button:disabled) { opacity: 0.5; }
+  /* Replies are ordered under their targets and indented one rem per level. */
+  :global(.comment-item) {
+    gap: 0;
+    line-height: 1.35;
+    margin-bottom: 1.5rem;
+  }
+
+  :global(.comment-item > .comment-header) {
+    margin-bottom: 0;
+  }
+
+  :global(.comment-item .comment-message) {
+    margin-bottom: 0 !important;
+    line-height: 1.65;
+  }
+
+  :global(.comment-actions) {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding-left: 0;
+  }
+
+  :global(.comment-actions .comment-like),
+  :global(.comment-actions .comment-reply-button) {
+    margin: 0 !important;
+  }
+
+  /*
+   * 回覆 / 編輯 都維持你現在的小型文字按鈕樣式
+   */
+  :global(.comment-actions .comment-reply-button),
+  :global(.comment-actions .comment-edit-button),
+  :global(.reply-form-heading .comment-cancel) {
+    appearance: none !important;
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    color: inherit !important;
+    opacity: 0.65;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.9rem;
+  }
+
+  :global(.comment-actions .comment-edit-button:hover) {
+    opacity: 1;
+  }
+
+  :global(.comment-edit-controls) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  :global(.comment-edit-deadline) {
+    font-size: 0.9rem;
+    opacity: 0.45;
+    white-space: nowrap;
+  }
+
+  :global(.comment-thread) {
+    display: grid;
+    gap: 0.2rem;
+    margin: 0.5rem 0 0 1rem;
+    padding-left: 0;
+    min-width: 0;
+  }
+
+  :global(.comment-thread-entry) {
+    display: grid;
+    gap: 0;
+    line-height: 1.35;
+    min-width: 0;
+  }
+
+  :global(.comment-thread-entry .comment-message) {
+    padding-left: 0 !important;
+    border-left: 0 !important;
+  }
+
+  :global(.comment-thread-entry .comment-actions) {
+    padding-left: 0;
+  }
+
+  :global(.comment-thread-entry .comment-header) {
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+    margin-bottom: 0;
+  }
+
+  :global(.comment-to) {
+    opacity: 0.7;
+  }
+
+  :global(.comment-reply-form) {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0.4rem 0;
+    min-width: 0;
+  }
+
+  :global(.comment-reply-form label) {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  :global(.comment-reply-form input),
+  :global(.comment-reply-form textarea) {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 0.7rem 0.8rem;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 1px solid var(--border, #aaa);
+    border-radius: 6px;
+  }
+
+  :global(.reply-form-heading),
+  :global(.comment-reply-form .comment-submit-row) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+  }
+
+  :global(.reply-form-heading) {
+    font-weight: 600;
+  }
+
+  :global(.comment-reply-form button:disabled) {
+    opacity: 0.5;
+  }
 </style>

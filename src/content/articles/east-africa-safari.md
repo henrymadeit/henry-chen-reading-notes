@@ -72,7 +72,7 @@ Safari 有不同形式。「Game Drive」是搭乘吉普車尋找大型動物；
 <p class="image-caption">從直升機上看維多利亞瀑布。</p>
 
 ## Safari 手記 午睡
-波茲瓦那的丘比國家公園裡有許多午睡的獅子。我們Game Drive時，太座把她的手機掉在這位獅先生身旁兩米處。
+波茲瓦納的丘比國家公園裡有許多午睡的獅子。我們Game Drive時，太座把她的手機掉在這位獅先生身旁兩米處。
 
 ![吵醒的獅子](/images/articles/east-africa-safari/east-africa-wake-up-lion.png)
 <p class="image-caption">被關門聲驚醒的公獅。</p>
