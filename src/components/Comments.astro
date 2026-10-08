@@ -41,7 +41,7 @@ const { slug } = Astro.props;
   type Reply = {
     id: number;
     comment_id: number;
-    target_type: 'comment' | 'legacy' | 'reply';
+    target_type: 'comment' | 'reply';
     target_id: number;
     name: string;
     message: string;
@@ -58,14 +58,11 @@ const { slug } = Astro.props;
     edited_at: string | null;
     is_owner: number;
     likes: number;
-    reply: string | null;
-    reply_updated_at: string | null;
-    reply_likes: number;
     replies: Reply[];
   };
 
   type Target = {
-    type: 'comment' | 'legacy' | 'reply';
+    type: 'comment' | 'reply';
     id: number;
     name: string;
   };
@@ -379,14 +376,12 @@ const { slug } = Astro.props;
     function likeButton(
       id: number,
       count: number,
-      kind: 'comment' | 'legacy' | 'reply'
+      kind: 'comment' | 'reply'
     ) {
       const key =
         kind === 'comment'
           ? `comment-liked-${id}`
-          : kind === 'legacy'
-            ? `comment-reply-liked:${id}`
-            : `thread-reply-liked:${id}`;
+          : `thread-reply-liked:${id}`;
 
       let liked =
         localStorage.getItem(key) === '1';
@@ -403,13 +398,9 @@ const { slug } = Astro.props;
                 ? liked
                   ? 'unlike'
                   : 'like'
-                : kind === 'legacy'
-                  ? liked
-                    ? 'reply-unlike'
-                    : 'reply-like'
-                  : liked
-                    ? 'thread-unlike'
-                    : 'thread-like';
+                : liked
+                  ? 'thread-unlike'
+                  : 'thread-like';
 
             const response = await fetch(apiUrl, {
               method: 'PATCH',
@@ -425,10 +416,7 @@ const { slug } = Astro.props;
             const result =
               await response.json();
 
-            const value =
-              kind === 'legacy'
-                ? result.reply_likes
-                : result.likes;
+            const value = result.likes;
 
             if (
               !response.ok ||
@@ -763,26 +751,17 @@ const { slug } = Astro.props;
 
     function renderEntry(
       comment: ThreadComment,
-      entry: Reply | null,
+      entry: Reply,
       thread: HTMLElement,
       depth: number
     ) {
-      const legacy = entry === null;
-
-      const target: Target =
-        legacy
-          ? {
-              type: 'legacy',
-              id: comment.id,
-              name: '[Henry]'
-            }
-          : {
-              type: 'reply',
-              id: entry.id,
-              name: entry.is_owner
-                ? '[Henry]'
-                : entry.name
-            };
+      const target: Target = {
+        type: 'reply',
+        id: entry.id,
+        name: entry.is_owner
+          ? '[Henry]'
+          : entry.name
+      };
 
       const item =
         document.createElement('div');
@@ -803,7 +782,7 @@ const { slug } = Astro.props;
         document.createElement('strong');
 
       name.textContent =
-        legacy || entry.is_owner
+        entry.is_owner
           ? '[Henry]'
           : entry.name;
 
@@ -814,19 +793,9 @@ const { slug } = Astro.props;
 
       to.className = 'comment-to';
 
-      if (legacy) {
+      if (entry.target_type === 'comment') {
         to.textContent =
           `→ ${comment.name}`;
-      } else if (
-        entry.target_type === 'comment'
-      ) {
-        to.textContent =
-          `→ ${comment.name}`;
-      } else if (
-        entry.target_type === 'legacy'
-      ) {
-        to.textContent =
-          '→ [Henry]';
       } else {
         const recipient =
           comment.replies.find(
@@ -850,12 +819,7 @@ const { slug } = Astro.props;
         document.createElement('time');
 
       time.textContent =
-        formatDate(
-          legacy
-            ? comment.reply_updated_at ??
-              comment.created_at
-            : entry.created_at
-        );
+        formatDate(entry.created_at);
 
       header.appendChild(time);
 
@@ -865,10 +829,7 @@ const { slug } = Astro.props;
       message.className =
         'comment-message';
 
-      message.textContent =
-        legacy
-          ? comment.reply
-          : entry.message;
+      message.textContent = entry.message;
 
       const actions =
         document.createElement('div');
@@ -878,15 +839,9 @@ const { slug } = Astro.props;
 
       actions.appendChild(
         likeButton(
-          legacy
-            ? comment.id
-            : entry.id,
-          legacy
-            ? comment.reply_likes
-            : entry.likes,
-          legacy
-            ? 'legacy'
-            : 'reply'
+          entry.id,
+          entry.likes,
+          'reply'
         )
       );
 
@@ -905,136 +860,12 @@ const { slug } = Astro.props;
         )
       );
 
-      if (!legacy && entry.is_owner && isAdmin) {
+      if (entry.is_owner && isAdmin) {
         actions.appendChild(
           makeButton(
             '編輯',
             'comment-edit-button',
             () => openThreadEditForm(entry, item)
-          )
-        );
-      }
-
-      /*
-       * Existing Henry legacy reply editing.
-       */
-      if (legacy && isAdmin) {
-        actions.appendChild(
-          makeButton(
-            '修改回覆',
-            'comment-edit-button',
-            () => {
-              activeForm?.remove();
-
-              const edit =
-                document.createElement(
-                  'form'
-                );
-
-              edit.className =
-                'comment-reply-form';
-
-              activeForm = edit;
-
-              const textarea =
-                document.createElement(
-                  'textarea'
-                );
-
-              textarea.value =
-                comment.reply ?? '';
-
-              textarea.maxLength = 1000;
-              textarea.required = true;
-              textarea.rows = 3;
-
-              const send =
-                document.createElement(
-                  'button'
-                );
-
-              send.textContent = '儲存';
-
-              const cancel =
-                makeButton(
-                  '取消',
-                  'comment-cancel',
-                  () => {
-                    edit.remove();
-                    activeForm = null;
-                  }
-                );
-
-              edit.append(
-                textarea,
-                send,
-                cancel
-              );
-
-              edit.addEventListener(
-                'submit',
-                async (event) => {
-                  event.preventDefault();
-
-                  send.disabled = true;
-
-                  try {
-                    const response =
-                      await fetch(
-                        apiUrl,
-                        {
-                          method:
-                            'PATCH',
-                          headers: {
-                            'Content-Type':
-                              'application/json'
-                          },
-                          body:
-                            JSON.stringify(
-                              {
-                                id:
-                                  comment.id,
-                                action:
-                                  'reply',
-                                reply:
-                                  textarea
-                                    .value
-                                    .trim()
-                              }
-                            )
-                        }
-                      );
-
-                    const result =
-                      await response.json();
-
-                    if (!response.ok) {
-                      throw new Error(
-                        result.error ||
-                        '修改失敗'
-                      );
-                    }
-
-                    activeForm = null;
-
-                    await loadComments();
-
-                  } catch (error) {
-                    alert(
-                      error instanceof Error
-                        ? error.message
-                        : '修改失敗'
-                    );
-
-                    send.disabled =
-                      false;
-                  }
-                }
-              );
-
-              item.appendChild(edit);
-              textarea.focus();
-            }
           )
         );
       }
@@ -1055,13 +886,13 @@ const { slug } = Astro.props;
     function orderThreadEntries(
       comment: ThreadComment
     ): Array<{
-      reply: Reply | null;
+      reply: Reply;
       depth: number;
     }> {
       const entries: Array<{
         time: string;
         id: number;
-        reply: Reply | null;
+        reply: Reply;
       }> =
         comment.replies.map(
           (reply) => ({
@@ -1070,16 +901,6 @@ const { slug } = Astro.props;
             reply
           })
         );
-
-      if (comment.reply) {
-        entries.push({
-          time:
-            comment.reply_updated_at ??
-            comment.created_at,
-          id: 0,
-          reply: null
-        });
-      }
 
       entries.sort(
         (a, b) =>
@@ -1106,15 +927,7 @@ const { slug } = Astro.props;
         let parent = 'root';
 
         if (
-          reply?.target_type ===
-            'legacy' &&
-          comment.reply
-        ) {
-          parent = 'legacy';
-        }
-
-        if (
-          reply?.target_type ===
+          reply.target_type ===
             'reply' &&
           replyIds.has(reply.target_id)
         ) {
@@ -1134,7 +947,7 @@ const { slug } = Astro.props;
       }
 
       const ordered: Array<{
-        reply: Reply | null;
+        reply: Reply;
         depth: number;
       }> = [];
 
@@ -1146,10 +959,7 @@ const { slug } = Astro.props;
           (typeof entries)[number],
         depth: number
       ) {
-        const key =
-          entry.reply
-            ? `reply:${entry.id}`
-            : 'legacy';
+        const key = `reply:${entry.id}`;
 
         if (shown.has(key)) return;
 
