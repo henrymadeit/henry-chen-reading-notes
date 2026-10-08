@@ -53,10 +53,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         created_at,
         edited_at,
         is_owner,
-        likes,
-        reply,
-        reply_updated_at,
-        reply_likes
+        likes
       FROM comments
       WHERE slug = ?
       ORDER BY created_at ASC
@@ -105,7 +102,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       name?: string;
       message?: string;
       comment_id?: number;
-      target_type?: 'comment' | 'legacy' | 'reply';
+      target_type?: 'comment' | 'reply';
       target_id?: number;
       editToken?: string;
     };
@@ -141,7 +138,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         commentId <= 0 ||
         !Number.isInteger(targetId) ||
         targetId <= 0 ||
-        !['comment', 'legacy', 'reply'].includes(targetType ?? '')
+        !['comment', 'reply'].includes(targetType ?? '')
       ) {
         return Response.json(
           { error: '無效的回覆對象' },
@@ -151,15 +148,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
       const root = await context.env.henryreads_comments
         .prepare(`
-          SELECT id, reply
+          SELECT id
           FROM comments
           WHERE id = ? AND slug = ?
         `)
         .bind(commentId, slug)
-        .first<{
-          id: number;
-          reply: string | null;
-        }>();
+        .first<{ id: number }>();
 
       if (!root) {
         return Response.json(
@@ -171,16 +165,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       if (
         targetType === 'comment' &&
         targetId !== root.id
-      ) {
-        return Response.json(
-          { error: '無效的回覆對象' },
-          { status: 400 }
-        );
-      }
-
-      if (
-        targetType === 'legacy' &&
-        (targetId !== root.id || !root.reply)
       ) {
         return Response.json(
           { error: '無效的回覆對象' },
@@ -308,14 +292,10 @@ export const onRequestPatch: PagesFunction<Env> = async (context) => {
       action?:
         | 'like'
         | 'unlike'
-        | 'reply'
-        | 'reply-like'
-        | 'reply-unlike'
         | 'thread-like'
         | 'thread-unlike'
         | 'thread-edit'
         | 'edit';
-      reply?: string;
       message?: string;
       editToken?: string;
     };
@@ -547,102 +527,6 @@ export const onRequestPatch: PagesFunction<Env> = async (context) => {
       return Response.json({
         success: true,
         likes: result.likes
-      });
-    }
-
-    /* ---------- Henry legacy reply ---------- */
-
-    if (action === 'reply') {
-      const admin = await isAdmin(context);
-
-      if (!admin) {
-        return Response.json(
-          { error: '未授權' },
-          { status: 401 }
-        );
-      }
-
-      const reply = body.reply?.trim();
-
-      if (!reply) {
-        return Response.json(
-          { error: '回覆不能空白' },
-          { status: 400 }
-        );
-      }
-
-      if (reply.length > 1000) {
-        return Response.json(
-          { error: '回覆太長' },
-          { status: 400 }
-        );
-      }
-
-      const result = await context.env.henryreads_comments
-        .prepare(`
-          UPDATE comments
-          SET
-            reply = ?,
-            reply_updated_at = CURRENT_TIMESTAMP
-          WHERE id = ?
-            AND slug = ?
-          RETURNING
-            reply,
-            reply_updated_at
-        `)
-        .bind(reply, id, slug)
-        .first<{
-          reply: string;
-          reply_updated_at: string;
-        }>();
-
-      if (!result) {
-        return Response.json(
-          { error: '找不到留言' },
-          { status: 404 }
-        );
-      }
-
-      return Response.json({
-        success: true,
-        reply: result.reply,
-        reply_updated_at: result.reply_updated_at
-      });
-    }
-
-    /* ---------- Legacy reply likes ---------- */
-
-    if (
-      action === 'reply-like' ||
-      action === 'reply-unlike'
-    ) {
-      const result = await context.env.henryreads_comments
-        .prepare(`
-          UPDATE comments
-          SET reply_likes =
-            CASE
-              WHEN ? = 'reply-like'
-                THEN reply_likes + 1
-              ELSE MAX(reply_likes - 1, 0)
-            END
-          WHERE id = ?
-            AND slug = ?
-            AND reply IS NOT NULL
-          RETURNING reply_likes
-        `)
-        .bind(action, id, slug)
-        .first<{ reply_likes: number }>();
-
-      if (!result) {
-        return Response.json(
-          { error: '找不到留言' },
-          { status: 404 }
-        );
-      }
-
-      return Response.json({
-        success: true,
-        reply_likes: result.reply_likes
       });
     }
 
