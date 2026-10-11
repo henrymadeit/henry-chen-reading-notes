@@ -10,12 +10,7 @@ const { titles } = Astro.props;
   class="recent-ticker"
   data-recent-ticker
   data-titles={JSON.stringify(titles)}
-  hidden
->
-
-  <span class="recent-ticker-label">
-    最近留言
-  </span>
+  hidden>
 
   <div class="recent-ticker-window" data-ticker-window>
     <div
@@ -267,18 +262,13 @@ const { titles } = Astro.props;
 
   .recent-ticker {
     position: relative;
-
     width: 75%;
-
     display: flex;
     align-items: center;
     gap: 1rem;
-
     padding: 0;
-
     background: transparent;
     color: var(--accent);
-
     font-size: 0.85rem;
     line-height: 1.5;
   }
@@ -395,14 +385,23 @@ const { titles } = Astro.props;
      MOBILE
      ========================= */
 
-  @media (max-width: 700px) {
-
-    .recent-ticker {
-      font-size: 0.78rem;
-      gap: 0.6rem;
-    }
-
+@media (max-width: 700px) {
+  .recent-ticker {
+    width: 100%;
+    max-width: 100%;
+    font-size: 0.7rem;
+    gap: 0.6rem;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
+
+  .recent-ticker-label,
+  .recent-ticker-track :global(.recent-ticker-item) {
+    font-size: inherit;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+}
 
 
   /* =========================

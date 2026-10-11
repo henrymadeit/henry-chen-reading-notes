@@ -17,7 +17,7 @@ coverCaption: My website, built with VS-Code
 
 ## 我的Vibe Coding
 
-我上次寫程式是在攻讀博士學位時期，用C語言幫太太做功課寫寫下棋的程式。三十多年來，Java，Python沒跟上；網站的HTTP，CSS，TypeScript，Astro也不懂。實在沒什麼信心。Vibe Coding，氛圍式程式撰寫與傳統Coding不同，是人以自然語言描述需求，讓AI撰寫程式。ChatGPT告訴我「開發」不同於「架設」網站，不必大動干戈地買NAS或什麼Server硬體。網站部署服務可以由Cloudflare，網路基礎設施與雲端服務公司免費提供。大喜。
+我上次寫程式是在攻讀博士學位時期，用C語言寫寫下棋的程式。三十多年來，Java，Python沒跟上；網站的HTTP，CSS，TypeScript，Astro也不懂。實在沒什麼信心。Vibe Coding，氛圍式程式撰寫與傳統Coding不同，是人以自然語言描述需求，讓AI撰寫程式。ChatGPT告訴我「開發」不同於「架設」網站，不必大動干戈地買NAS或什麼Server硬體。網站部署服務可以由Cloudflare，網路基礎設施與雲端服務公司免費提供。大喜。
 
 我啟動ChatGPT的第一句話是在7/30：「請替我規劃一個繁體中文個人網站，名稱是"Henry Chen 的隨筆"。內容包括閱讀隨筆、歷史與文明、科技與半導體、家族史。網站風格安靜、理性、留白充足，適合閱讀長文。請先設計資訊架構，先不要開始寫程式。」接著ChatGPT在一天內，協助我將VSCode，Node.js，npm …安裝在一部用了六年的 i-7 電腦上。然後ChatGPT給了我一個初版程式。我開始網頁與功能的修改，9/12就在Cloudflare部署。扣除三週因東非旅行停工，實際上還花不到一個月（晚上與周末）。我隨著上傳了18篇新舊短文，繼續網頁與功能調整，9/22正式公開網站。
 
