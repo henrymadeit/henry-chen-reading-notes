@@ -88,17 +88,8 @@ const { slug } = Astro.props;
 
     mainName.value =
       localStorage.getItem(savedNameKey) ?? '';
-
-    function parseDatabaseDate(value: string) {
-      const normalized = value.replace(' ', 'T');
-
-      if (
-        normalized.endsWith('Z') ||
-        /[+-]\d\d:\d\d$/.test(normalized)
-      ) {
-        return new Date(normalized);
-      }
-
+    function parseDatabaseDate(value: string): Date {
+      const normalized = value.trim().replace(' ', 'T').replace(/Z$/i, '');
       return new Date(`${normalized}Z`);
     }
 

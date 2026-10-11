@@ -1,0 +1,428 @@
+---
+interface Props {
+  titles: Record<string, string>;
+}
+
+const { titles } = Astro.props;
+---
+
+<div
+  class="recent-ticker"
+  data-recent-ticker
+  data-titles={JSON.stringify(titles)}
+  hidden
+>
+
+  <span class="recent-ticker-label">
+    最近留言
+  </span>
+
+  <div class="recent-ticker-window" data-ticker-window>
+    <div
+      class="recent-ticker-track"
+      data-ticker-track
+    ></div>
+  </div>
+
+</div>
+
+
+<script>
+
+  interface RecentComment {
+    id: number;
+    slug: string;
+    name: string;
+    message: string;
+    created_at: string;
+    type: 'comment' | 'reply';
+    reply_to_name: string | null;
+  }
+
+  const ticker = document.querySelector<HTMLElement>(
+    '[data-recent-ticker]'
+  );
+
+  const track = ticker?.querySelector<HTMLElement>(
+    '[data-ticker-track]'
+  );
+
+  const viewport = ticker?.querySelector<HTMLElement>(
+    '[data-ticker-window]'
+  );
+
+
+  if (ticker && track && viewport) {
+
+    const tickerEl = ticker;
+    const trackEl = track;
+    const viewportEl = viewport;
+
+    const titles: Record<string, string> = JSON.parse(
+      tickerEl.dataset.titles ?? '{}'
+    );
+
+
+    /* =========================
+       ANIMATION SIZE & SPEED
+       ========================= */
+
+    function updateTickerMetrics() {
+
+      const group = trackEl.querySelector<HTMLElement>(
+        '.recent-ticker-group'
+      );
+
+      if (!group) return;
+
+      const viewportWidth = viewportEl.clientWidth;
+
+      // 兩組之間至少隔開一個可視區域，
+      // 避免同一則留言同時出現兩次。
+      trackEl.style.setProperty(
+        '--ticker-gap',
+        `${viewportWidth}px`
+      );
+
+      const groupWidth = group.getBoundingClientRect().width;
+
+      // 固定接近每秒 38px 的移動速度。
+      // 留言愈多，完整循環時間愈長。
+      const duration = Math.max(15, groupWidth / 38);
+
+      trackEl.style.setProperty(
+        '--ticker-duration',
+        `${duration}s`
+      );
+    }
+
+
+    /* =========================
+       LOAD RECENT COMMENTS
+       ========================= */
+
+    async function loadRecentComments() {
+
+      try {
+
+        const response = await fetch(
+          '/api/recent-comments',
+          { cache: 'no-store' }
+        );
+
+        if (!response.ok) {
+          throw new Error('Recent comments API error');
+        }
+
+        const data = await response.json() as {
+          items: RecentComment[];
+        };
+
+        const now = Date.now();
+
+        const items = data.items
+          .filter((item) => {
+
+            const time = Date.parse(
+              item.created_at.replace(' ', 'T') + 'Z'
+            );
+
+            return (
+              Number.isFinite(time) &&
+              now - time >= 0 &&
+              now - time < 120 * 60 * 60 * 1000 &&
+              Boolean(titles[item.slug])
+            );
+
+          })
+          .slice(0, 8);
+
+
+        /* No recent comments */
+
+        if (items.length === 0) {
+          tickerEl.hidden = true;
+          return;
+        }
+
+
+        /* =========================
+           BUILD COMMENT GROUP
+           ========================= */
+
+        const group = document.createElement('div');
+
+        group.className = 'recent-ticker-group';
+
+
+        for (const item of items) {
+
+          const link = document.createElement('a');
+
+          link.className = 'recent-ticker-item';
+
+          link.href =
+            `/articles/${encodeURI(item.slug)}/`;
+
+
+          /* First 20 characters */
+
+          const message = item.message
+            .replace(/\s+/g, ' ')
+            .trim();
+
+          const characters = Array.from(message);
+
+          const preview =
+            characters.slice(0, 20).join('') +
+            (characters.length > 20 ? '…' : '');
+
+
+          /* Comment or reply */
+
+        if (item.type === 'reply') {
+
+          const target = item.reply_to_name
+            ? ` ${item.reply_to_name}`
+            : '';
+
+          link.textContent =
+            `${item.name} 回覆${target}〈${titles[item.slug]}〉：${preview}`;
+
+} else {
+
+  link.textContent =
+    `${item.name} 留言於〈${titles[item.slug]}〉：${preview}`;
+
+}
+
+
+          group.appendChild(link);
+
+        }
+
+
+        /* =========================
+           DISPLAY
+           ========================= */
+
+        const reduceMotion = window.matchMedia(
+          '(prefers-reduced-motion: reduce)'
+        ).matches;
+
+        if (reduceMotion) {
+
+          // 偏好減少動畫的使用者：不捲動。
+          trackEl.replaceChildren(group);
+
+        } else {
+
+          // 複製一組以形成無縫循環。
+          // 配合 ticker-gap 避免畫面上重複。
+          const clone = group.cloneNode(true) as HTMLElement;
+
+          clone.setAttribute('aria-hidden', 'true');
+
+          clone.querySelectorAll('a').forEach((link) => {
+            link.tabIndex = -1;
+          });
+
+          trackEl.replaceChildren(
+            group,
+            clone
+          );
+
+        }
+
+        tickerEl.hidden = false;
+
+        if (!reduceMotion) {
+          requestAnimationFrame(updateTickerMetrics);
+          window.addEventListener('resize', updateTickerMetrics);
+        }
+
+      } catch (error) {
+
+        console.error('Recent comments:', error);
+
+        tickerEl.hidden = true;
+
+      }
+
+    }
+
+
+    loadRecentComments();
+
+  }
+
+</script>
+
+
+<style>
+
+  /* =========================
+     TICKER CONTAINER
+     ========================= */
+
+  .recent-ticker {
+    position: relative;
+
+    width: 75%;
+
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    padding: 0;
+
+    background: transparent;
+    color: var(--accent);
+
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .recent-ticker[hidden] {
+    display: none;
+  }
+
+
+  /* =========================
+     FIXED LABEL
+     ========================= */
+
+  .recent-ticker-label {
+    flex-shrink: 0;
+
+    color: var(--accent);
+    font-weight: 400;
+    white-space: nowrap;
+
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  }
+
+
+  /* =========================
+     VIEWPORT
+     ========================= */
+
+  .recent-ticker-window {
+    flex: 1;
+    min-width: 0;
+
+    overflow: hidden;
+  }
+
+
+  /* =========================
+     MOVING TRACK
+     ========================= */
+
+  .recent-ticker-track {
+    display: flex;
+    width: max-content;
+
+    animation:
+      ticker-scroll
+      var(--ticker-duration, 55s)
+      linear
+      infinite;
+  }
+
+
+  /* =========================
+     COMMENT GROUPS
+     ========================= */
+
+  .recent-ticker-track :global(.recent-ticker-group) {
+    display: flex;
+    align-items: center;
+
+    flex-shrink: 0;
+
+    gap: 2.5rem;
+
+    padding-right: var(--ticker-gap, 100vw);
+  }
+
+  /* =========================
+     COMMENT LINKS
+     ========================= */
+
+  .recent-ticker-track :global(.recent-ticker-item) {
+    color: var(--accent);
+    text-decoration: none;
+    white-space: nowrap;
+
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  }
+
+  .recent-ticker-track :global(.recent-ticker-item:hover) {
+    color: #e6d5a5;
+    text-decoration: underline;
+  }
+
+
+  /* =========================
+     PAUSE ON HOVER / FOCUS
+     ========================= */
+
+  .recent-ticker:hover .recent-ticker-track,
+  .recent-ticker:focus-within .recent-ticker-track {
+    animation-play-state: paused;
+  }
+
+
+  /* =========================
+     MARQUEE ANIMATION
+     ========================= */
+
+  @keyframes ticker-scroll {
+
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(-50%);
+    }
+
+  }
+
+
+  /* =========================
+     MOBILE
+     ========================= */
+
+  @media (max-width: 700px) {
+
+    .recent-ticker {
+      font-size: 0.78rem;
+      gap: 0.6rem;
+    }
+
+  }
+
+
+  /* =========================
+     REDUCED MOTION
+     ========================= */
+
+  @media (prefers-reduced-motion: reduce) {
+
+    .recent-ticker-track {
+      animation: none;
+    }
+
+    .recent-ticker-window {
+      overflow-x: auto;
+    }
+
+    .recent-ticker-track :global(.recent-ticker-group) {
+      padding-right: 0;
+    }
+
+  }
+
+</style>

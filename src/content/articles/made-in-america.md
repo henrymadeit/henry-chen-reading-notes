@@ -7,7 +7,7 @@ tags: [民國, 美國外交, 台灣民主]
 //draft: true
 //note: 哈哈作者會不高興
 //featured: true
-pinned: true
+//pinned: true
 cover: /images/articles/made-in-america/cover-chinese.jpg
 coverCaption: 繁體中文版書封面
 ---

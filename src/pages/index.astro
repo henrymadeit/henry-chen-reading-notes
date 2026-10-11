@@ -2,11 +2,15 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
+import RecentComments from '../components/RecentComments.astro';
 import { visibleArticles, categories, categoryPaths } from '../lib/articles';
+
 const articles = visibleArticles(await getCollection('articles'));
+
 const featured = articles.filter((a) => a.data.featured).slice(0, 4);
 const pinned = articles.filter((a) => a.data.pinned).slice(0, 2);
 const latest = articles.slice(0, 6);
+
 const categoryDescriptions = {
   '閱讀隨筆': '閱讀的樂趣與意外的發現',
   '歷史與文明': '從海洋、土地與宗教，理解文明的選擇',
@@ -14,84 +18,310 @@ const categoryDescriptions = {
   '台灣與世界': '從台灣出發，探索世界',
   // '廈門大稻埕陳氏': '一個家族往返廈門、上海與大稻埕的百年記憶。',
 };
-//在下方加上宣傳字語，不加就在'與'間空白
-const promotion = '新增 台灣與世界 <由余杰的「養共為患」一書談起>';
-const promotion2 = '新增 行旅與隨想 <納米比亞之旅>';
 
+// 在下方加上宣傳字語，不加就在引號間留空白
+const promotion = '新增 行旅與隨想 <VIBE CODING - 有趣, 也比想像容易>';
+const promotion2 = '新增 行旅與隨想 <納米比亞之旅 - 2025年的大旅行>';
 
 ---
+
 <BaseLayout>
+
+  <!-- =========================
+       HOME HERO
+       ========================= -->
+
   <section class="hero wrap home-hero">
+
     <p class="eyebrow">閱讀，旅行，聯想。</p>
+
     <h1>Henry Chen 的隨筆</h1>
-    <p class="hero-copy">閱讀讓我看見世界，旅行讓我體會世界，寫作助我整理思緒。</p>
-    <p class="hero-message">歡迎交流: henryreads.pages@gmail.com</p>
+
+    <p class="hero-copy">
+      閱讀讓我看見世界，旅行讓我體會世界，寫作助我整理思緒。
+    </p>
+
+
+    <!-- =========================
+         PROMOTION
+         ========================= -->
+
     {promotion && (
-      <p class="hero-promotion">
-      {promotion}<br />
-      {promotion2}
-      </p>
+      <div class="hero-promotion">
+        <p>{promotion}</p>
+        {promotion2 && <p>{promotion2}</p>}
+      </div>
     )}
-    <p class="hero-caption">丘比河，波茲瓦納 - Aug 2026</p>
+
+
+    <!-- =========================
+         RECENT COMMENTS + EMAIL
+         ========================= -->
+
+   <div class="hero-bottom">
+
+    <p class="hero-contact">
+       歡迎交流：
+    <a href="mailto:henryreads.pages@gmail.com">
+      henryreads.pages@gmail.com
+    </a>
+    </p>
+
+    <RecentComments
+      titles={Object.fromEntries(
+        articles.map((article) => [
+          article.id,
+          article.data.title
+        ])
+      )}
+    />
+
+   </div>
+
   </section>
 
-    {pinned.length > 0 && (
-      <section class="wrap latest-section">
-      <h2 class="latest-heading">最新文章</h2>
-        {pinned.map((article) => (
-          <div class="latest-item">
-            <ArticleCard article={article} showLikes={true} wideCounts={true} />
-          </div>
-        ))}
-      </section>
-    )}
 
+  <!-- =========================
+       HERO PHOTO CAPTION
+       ========================= -->
+
+  <div class="wrap">
+    <p class="home-photo-credit">
+      丘比河，波茲瓦納 - Aug 2026
+    </p>
+  </div>
+
+
+  <!-- =========================
+       LATEST ARTICLES
+       ========================= -->
+
+  {pinned.length > 0 && (
+    <section class="wrap latest-section">
+
+      <h2 class="latest-heading">最新文章</h2>
+
+      {pinned.map((article) => (
+        <div class="latest-item">
+          <ArticleCard
+            article={article}
+            showLikes={true}
+            wideCounts={true}
+          />
+        </div>
+      ))}
+
+    </section>
+  )}
+
+
+  <!-- =========================
+       FEATURED ARTICLES
+       ========================= -->
 
   {featured.length > 0 && (
     <section class="wrap section">
+
       <div class="section-heading">
         <h2>精選文章</h2>
       </div>
 
       <div class="card-grid featured-grid">
-        {featured.map((article) => <ArticleCard article={article} showLikes={true} />)}
+        {featured.map((article) => (
+          <ArticleCard
+            article={article}
+            showLikes={true}
+          />
+        ))}
       </div>
+
     </section>
   )}
-  
+
+
+  <!-- =========================
+       CATEGORY OVERVIEW
+       ========================= -->
+
   <section class="wrap overview-section">
-  <h2 class="overview-heading">分類總覽</h2>
-  <div class="topic-grid" aria-label="主題">
-    {categories.map((category) => <a class="topic-card" href={categoryPaths[category]}><h2>{category}</h2><p>{categoryDescriptions[category]}</p></a>)}
+
+    <h2 class="overview-heading">分類總覽</h2>
+
+    <div class="topic-grid" aria-label="主題">
+
+      {categories.map((category) => (
+        <a
+          class="topic-card"
+          href={categoryPaths[category]}
+        >
+          <h2>{category}</h2>
+          <p>{categoryDescriptions[category]}</p>
+        </a>
+      ))}
+
     </div>
+
   </section>
 
 </BaseLayout>
 
+
 <style>
-  .hero-promotion {
-    text-align: left;
-    width: fit-content;
-    margin-left: 3%;
-    font-size: 0.85rem;
-    color: #e6d518;
-    font-weight: 750;
-    margin-top: 5.5rem;
-  }
+
+  /* =========================
+     HOME HERO
+     ========================= */
 
   .home-hero {
     position: relative;
+
+    padding-bottom: clamp(1.6rem, 3vw, 1rem);
+
+    /* 統一管理 Hero 文字間距 */
+
+    --hero-gap-d: 4rem;
+    --hero-gap-p: calc(var(--hero-gap-d) * 0.02);
   }
 
-  .hero-caption {
-    position: absolute;
-    right: 0.8rem;
-    bottom: 0.5rem;
+
+  /* =========================
+     HERO DESCRIPTION
+     ========================= */
+
+  /* 保留標題與閱讀感言之間的原有距離 */
+
+  .home-hero .hero-copy {
+    margin-bottom: 0;
+  }
+
+
+  /* =========================
+     PROMOTION
+     ========================= */
+
+  .hero-promotion {
+    display: flex;
+    flex-direction: column;
+
+    gap: var(--hero-gap-p);
+
+    text-align: left;
+
+    width: fit-content;
+    max-width: 97%;
+
+    margin: var(--hero-gap-d) 0 0 3%;
+
+    font-size: 0.95rem;
+    color: #e6d518;
+    font-weight: 750;
+    line-height: 1.65;
+
+    transform: translateY(-5px);
+
+  }
+
+  .hero-promotion p {
     margin: 0;
-    font-size: 0.8rem;
-    font-weight: 900;
-    color: rgb(255, 255, 255);
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+    padding: 0;
+  }
+
+
+  /* =========================
+     HERO BOTTOM
+     ========================= */
+
+  .hero-bottom {
+    display: flex;
+    flex-direction: column;
+
+    gap: var(--hero-gap-p);
+
+    margin-top: var(--hero-gap-d);
+
+    transform: none;
+  }
+
+
+  /* =========================
+     CONTACT EMAIL
+     ========================= */
+
+  .hero-contact {
+    margin: 0;
+    padding: 0;
+
+    font-size: 0.85rem;
+    font-weight: 400;
+    line-height: 1.5;
+
+    color: var(--accent);
+
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  }
+
+  .hero-contact a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .hero-contact a:hover {
+    text-decoration: underline;
+  }
+
+
+  /* =========================
+     PHOTO CAPTION
+     ========================= */
+
+  .home-photo-credit {
+    width: fit-content;
+    max-width: 100%;
+
+    margin: 0.5rem 0 0 auto;
+
+    text-align: right;
+
+    font-size: 0.9rem;
+    font-weight: 400;
+    line-height: 1.4;
+
+    color: var(--muted);
+    opacity: 1;
+    text-shadow: none;
+  }
+
+
+  /* =========================
+     MOBILE
+     ========================= */
+
+  @media (max-width: 700px) {
+
+    .hero-promotion {
+      width: 100%;
+      margin-top: var(--hero-gap-d);
+      margin-inline: 0;
+      font-size: 0.85rem;
+    }
+
+    .hero-bottom {
+      margin-top: var(--hero-gap-d);
+      gap: var(--hero-gap-p);
+    }
+
+    .hero-contact {
+      font-size: 0.78rem;
+      overflow-wrap: anywhere;
+    }
+
+  }
+
+  /* 首頁 Hero 上方三行文字一起上移 */
+  .home-hero > .eyebrow,
+  .home-hero > h1,
+  .home-hero > .hero-copy {
+    transform: translateY(-30px);
   }
 
 </style>
