@@ -3,7 +3,7 @@ title: 埃及、希臘與羅馬：古代地中海文明
 description: 歐洲形成之前
 published: 2026-03-09
 category: 歷史與文明
-bookAuthor: 查爾斯·弗里曼
+bookAuthor: 查爾斯·弗里曼【英】
 tags: [海洋文明, 世界史, 地中海]
 //readingNumber: 10
 //takeaway: 歐洲之前的地中海

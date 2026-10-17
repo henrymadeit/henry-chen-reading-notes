@@ -3,7 +3,7 @@ title: 祖國
 description: 一夜醒來，你可能成為猶太人
 published: 2026-05-22
 category: 閱讀隨筆
-bookAuthor: 羅伯特·哈里斯
+bookAuthor: 羅伯特·哈里斯【英】
 tags: [架空歷史, 納粹, 推理, 國家, 猶太人]
 //featured: true
 //readingNumber: 9

@@ -1,16 +1,23 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/admin.css';
 ---
 
-<BaseLayout title="管理｜Henry Chen 的隨筆">
-  <article class="article-shell">
+<BaseLayout title="管理｜Henry Chen 的隨筆" noindex={true}>
+  <article class="article-shell admin-shell" data-pagefind-ignore>
     <header class="article-header">
       <p class="eyebrow">Admin</p>
       <h1>網站管理</h1>
     </header>
 
     <div class="prose">
-      <form class="admin-login">
+      <p data-login-status>正在確認登入狀態……</p>
+      <div class="admin-menu" data-admin-menu hidden>
+        <a href="/admin-comments"><strong>回覆留言</strong><p>查看與回覆讀者的留言</p></a>
+        <a href="/dashboard"><strong>Dashboard</strong><p>讀者列表與閱讀足跡</p></a>
+      </div>
+      <button type="button" data-logout hidden>登出</button>
+      <form class="admin-login" hidden>
         <label>
           管理密碼
           <input
@@ -27,7 +34,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </article>
 </BaseLayout>
   <script>
+  import {adminFetch} from '../lib/admin';
   const form = document.querySelector<HTMLFormElement>('.admin-login');
+  const menu = document.querySelector<HTMLElement>('[data-admin-menu]');
+  const logout = document.querySelector<HTMLButtonElement>('[data-logout]');
+  const status = document.querySelector<HTMLElement>('[data-login-status]');
+  function showMenu() {
+    if (form) form.hidden = true;
+    if (menu) menu.hidden = false;
+    if (logout) logout.hidden = false;
+    if (status) status.textContent = '';
+  }
+  try {
+    const data = await adminFetch('/api/admin-status');
+    if (data.admin) showMenu();
+    else { if (form) form.hidden = false; if (status) status.textContent = ''; }
+  } catch { if (form) form.hidden = false; if (status) status.textContent = '請登入'; }
+  logout?.addEventListener('click', async () => {
+    try { await adminFetch('/admin-logout', {method:'POST'}); location.reload(); }
+    catch { alert('登出失敗，請再試一次。'); }
+  });
 
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -60,7 +86,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         return;
       }
 
-      window.location.href = '/';
+      showMenu();
     } catch {
       alert('登入失敗');
     } finally {

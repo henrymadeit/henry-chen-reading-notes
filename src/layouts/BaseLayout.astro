@@ -2,7 +2,7 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles.css';
-const { title = 'Henry Chen 的隨筆', description = '閱讀、旅行，以及台灣與世界的觀察。' } = Astro.props;
+const { title = 'Henry Chen 的隨筆', description = '閱讀、旅行，以及台灣與世界的觀察。', noindex = false } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
 ---
 <!doctype html>
@@ -11,6 +11,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content={description} />
+  {noindex && <meta name="robots" content="noindex, nofollow" />}
   <link rel="canonical" href={canonical} />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <title>{title}</title>

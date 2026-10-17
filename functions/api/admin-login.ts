@@ -2,31 +2,26 @@ interface Env {
   ADMIN_PASSWORD: string;
 }
 
-async function makeAdminToken(password: string) {
-  const data = new TextEncoder().encode(`henryreads-admin:${password}`);
-  const hash = await crypto.subtle.digest('SHA-256', data);
-
-  return Array.from(new Uint8Array(hash))
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('');
-}
-
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
     const body = await context.request.json() as {
       password?: string;
     };
 
-    const password = body.password ?? '';
-
-    if (!password || password !== context.env.ADMIN_PASSWORD) {
+    if (!body.password || body.password !== context.env.ADMIN_PASSWORD) {
       return Response.json(
         { error: '密碼錯誤' },
         { status: 401 }
       );
     }
 
-    const token = await makeAdminToken(context.env.ADMIN_PASSWORD);
+    const data = new TextEncoder().encode(
+      `henryreads-admin:${context.env.ADMIN_PASSWORD}`
+    );
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    const token = Array.from(new Uint8Array(hash))
+      .map(byte => byte.toString(16).padStart(2, '0'))
+      .join('');
 
     return Response.json(
       { success: true },
@@ -37,7 +32,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         }
       }
     );
-
   } catch {
     return Response.json(
       { error: '登入失敗' },
@@ -45,4 +39,3 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     );
   }
 };
-

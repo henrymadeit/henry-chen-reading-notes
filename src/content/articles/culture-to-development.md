@@ -6,7 +6,7 @@ category: 台灣與世界
 //bookAuthor: 
 tags: [台灣, 產業, 科技, 文化]
 //pinned: true
-featured: true
+//featured: true
 //readingNumber: 10
 //takeaway: 
 cover: /images/articles/culture-to-development/t-ara.jpg

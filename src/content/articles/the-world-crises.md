@@ -3,7 +3,7 @@ title: 世界危機：第一次世界大戰回憶錄
 description: 一個知道浪漫已經過時，卻拒絕妥協的人的一戰記憶
 published: 2023-05-16
 category: 閱讀隨筆
-bookAuthor: 溫斯頓·邱吉爾
+bookAuthor: 溫斯頓·邱吉爾【英】
 tags: [歐洲, 大英帝國, 帝國主義]
 featured: false
 //takeaway: takeaway here

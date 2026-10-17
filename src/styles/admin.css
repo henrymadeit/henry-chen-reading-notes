@@ -1,0 +1,19 @@
+[hidden] { display: none !important; }
+.admin-nav { display:flex; gap:1rem; align-items:center; flex-wrap:wrap; margin-bottom:2rem; }
+.admin-shell button, .admin-shell input, .admin-shell select, .admin-shell textarea {
+  font:inherit; color:inherit; background:var(--surface, #242629); border:1px solid var(--border, #777);
+  padding:.5rem .75rem; border-radius:6px;
+}
+.admin-shell button { cursor:pointer; }
+.admin-shell button:disabled { opacity:.5; cursor:wait; }
+.admin-shell input, .admin-shell textarea { box-sizing:border-box; max-width:100%; }
+.admin-shell textarea { display:block; width:100%; margin:.7rem 0; }
+.admin-actions { display:flex; flex-wrap:wrap; align-items:center; gap:.7rem; margin:1rem 0; }
+.admin-table-wrap { overflow-x:auto; }
+.admin-table { width:100%; border-collapse:collapse; white-space:nowrap; }
+.admin-table th,.admin-table td { text-align:left; border-bottom:1px solid var(--border, #666); padding:.8rem; }
+.admin-note { font-size:.9rem; opacity:.7; line-height:1.7; }
+.admin-card { padding:1.2rem 0; border-bottom:1px solid var(--border, #666); }
+.admin-message { white-space:pre-wrap; overflow-wrap:anywhere; }
+.admin-menu { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; }
+.admin-menu a { display:block; border:1px solid var(--border, #666); border-radius:8px; padding:1.3rem; text-decoration:none; }

@@ -3,7 +3,7 @@ title: 最高權力：Imperium
 description: 讓我們清清嗓子，開始演講
 published: 2025-09-07
 category: 閱讀隨筆
-bookAuthor: 羅伯特·哈里斯
+bookAuthor: 羅伯特·哈里斯【英】
 tags: [前歐洲, 西塞羅, 凱撒]
 //pinned: true
 featured: true

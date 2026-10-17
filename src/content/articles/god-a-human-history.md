@@ -3,7 +3,7 @@ title: 造神：人類探索信仰與宗教的歷史
 description: 人以自身經驗打造神
 published: 2023-08-11
 category: 歷史與文明
-bookAuthor: 作者：雷薩．阿斯蘭
+bookAuthor: 雷薩．阿斯蘭【美】
 tags: [宗教, 基督教, 一神教]
 featured: false
 draft: true

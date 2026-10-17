@@ -1,0 +1,103 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+import { getCollection } from 'astro:content';
+import {visibleArticles} from '../lib/articles';
+const titles = Object.fromEntries(visibleArticles(await getCollection('articles')).map(a => [a.id,a.data.title]));
+---
+<AdminLayout title="Dashboard">
+  <div id="reader-dashboard" data-titles={JSON.stringify(titles)}>
+    <p class="admin-note">每列代表一個瀏覽器，並非經過驗證的真人。同名暱稱依序編號；不同裝置不自動合併。僅顯示啟用後的紀錄，已登入站主的操作不列入。</p>
+    <section data-reader-list>
+      <p data-totals></p>
+      <form class="admin-actions" data-reader-search>
+        <input name="q" placeholder="搜尋暱稱或訪客編號" aria-label="搜尋讀者" maxlength="80" />
+        <select name="sort" aria-label="排序"><option value="recent">最近來訪</option><option value="visits">來訪次數</option><option value="comments">留言數</option></select>
+        <button type="submit">查詢</button>
+      </form>
+      <div class="admin-table-wrap"><table class="admin-table">
+        <thead><tr><th>讀者</th><th>最近來訪</th><th>來訪次數</th><th>看過文章</th><th>文章 ♥</th><th>留言／回覆</th></tr></thead>
+        <tbody data-reader-rows></tbody>
+      </table></div>
+      <p class="admin-note">相隔超過 30 分鐘的活動算另一次來訪。「看過」代表開啟文章，不代表讀完。愛心為啟用後記錄的目前狀態。</p>
+    </section>
+    <section data-reader-detail hidden>
+      <button type="button" data-back>回到讀者列表</button>
+      <h2 data-reader-title></h2><p class="admin-note" data-reader-meta></p>
+      <div data-reader-events></div>
+    </section>
+    <p role="status" data-reader-status></p>
+    <div class="admin-actions"><button data-prev type="button">上一頁</button><span data-page></span><button data-next type="button">下一頁</button></div>
+  </div>
+</AdminLayout>
+<script>
+  import {ensureAdmin, adminFetch, localTime, articleLink} from '../lib/admin';
+  const root = document.querySelector<HTMLElement>('#reader-dashboard')!;
+  const titles:Record<string,string> = JSON.parse(root.dataset.titles || '{}');
+  const form = root.querySelector<HTMLFormElement>('[data-reader-search]')!;
+  const rows = root.querySelector<HTMLElement>('[data-reader-rows]')!;
+  const status = root.querySelector<HTMLElement>('[data-reader-status]')!;
+  const prev = root.querySelector<HTMLButtonElement>('[data-prev]')!;
+  const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
+  let offset = 0, selected:number|null = null, busy = false;
+  function cell(tr:HTMLElement, value:unknown) { const td = document.createElement('td');td.textContent=String(value);tr.append(td);return td; }
+  async function load() {
+    if(busy)return;
+    busy=true; prev.disabled=true;next.disabled=true;status.textContent='載入中……';
+    try {
+      const params = new URLSearchParams({offset:String(offset)});
+      if(selected)params.set('id',String(selected));
+      else { const fields = new FormData(form);params.set('q',String(fields.get('q')||''));params.set('sort',String(fields.get('sort')||'recent')); }
+      const data = await adminFetch(`/api/admin-readers?${params}`);
+      root.querySelector<HTMLElement>('[data-reader-list]')!.hidden=!!selected;
+      root.querySelector<HTMLElement>('[data-reader-detail]')!.hidden=!selected;
+      if(!selected) {
+        root.querySelector<HTMLElement>('[data-totals]')!.textContent=`${data.totals.readers} 位瀏覽器讀者 · ${data.totals.visits} 次來訪 · ${data.totals.views} 次文章開啟`;
+        rows.replaceChildren();
+        for(const reader of data.items) {
+          const tr=document.createElement('tr');const td=document.createElement('td');const button=document.createElement('button');
+          button.textContent=reader.label;button.title=`瀏覽器編號 ${reader.id}`;
+          button.onclick=()=>{selected=reader.id;offset=0;void load();};td.append(button);tr.append(td);
+          cell(tr,localTime(reader.last_seen));cell(tr,reader.visits);cell(tr,reader.articles);cell(tr,reader.likes);cell(tr,reader.comments);rows.append(tr);
+        }
+        status.textContent=data.items.length?'':'尚無符合的讀者紀錄。';
+      } else {
+        root.querySelector<HTMLElement>('[data-reader-title]')!.textContent=`${data.reader.label} 的閱讀足跡`;
+        root.querySelector<HTMLElement>('[data-reader-meta]')!.textContent=`瀏覽器編號 ${data.reader.id} · 首次出現 ${localTime(data.reader.first_seen)} · ${data.reader.visits} 次來訪`;
+        const list=root.querySelector<HTMLElement>('[data-reader-events]')!;list.replaceChildren();
+        for(const article of data.articles) {
+          const card=document.createElement('section');card.className='reader-article';
+          const heading=document.createElement('h3');
+          const a=document.createElement('a');a.href=articleLink(article.slug)+(article.messages.length?'#comments':'');a.textContent=titles[article.slug]||article.slug;
+          heading.append(a);card.append(heading);
+          for(const message of article.messages) {
+            const p=document.createElement('p');p.className='reader-activity';
+            const action = message.kind === 'reply' ? `回覆 → ${message.reply_to_name ?? '（對象已不存在）'}` : '留言';
+            p.textContent=`${action}，${localTime(message.created_at)}：${message.message ?? '（原文已不存在）'}`;
+            card.append(p);
+          }
+          if(article.like_time) {
+            const p=document.createElement('p');p.className='reader-activity';
+            p.textContent=`${article.liked?'愛心':'愛心已取消'}，${localTime(article.like_time)}`;card.append(p);
+          }
+          const access=document.createElement('p');access.className='reader-activity';
+          access.textContent=`Access，${article.accesses} 次，最後 Access：${article.last_access?localTime(article.last_access):'尚無紀錄'}`;
+          card.append(access);
+          list.append(card);
+        }
+        status.textContent=data.articles.length?'':'尚無活動紀錄。';
+      }
+      prev.disabled=offset===0;next.disabled=!data.more;
+      root.querySelector<HTMLElement>('[data-page]')!.textContent=`第 ${Math.floor(offset/50)+1} 頁`;
+    } catch(error) {status.textContent=error instanceof Error?error.message:'載入失敗';}
+    finally {busy=false;}
+  }
+  form.addEventListener('submit',e=>{e.preventDefault();offset=0;void load();});
+  root.querySelector('[data-back]')!.addEventListener('click',()=>{if(busy)return;selected=null;offset=0;void load();});
+  prev.onclick=()=>{offset=Math.max(0,offset-50);void load();};next.onclick=()=>{offset+=50;void load();};
+  if(await ensureAdmin())void load();
+</script>
+<style is:global>
+  .reader-article { padding:.85rem 0; border-bottom:1px solid var(--border, #666); }
+  .reader-article h3 { font-size:1.05rem; margin:0 0 .25rem; }
+  .reader-article .reader-activity { margin:.15rem 0; line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere; }
+</style>

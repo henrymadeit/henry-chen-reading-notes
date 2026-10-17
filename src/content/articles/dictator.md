@@ -3,7 +3,7 @@ title: 獨裁者
 description: 從天真年少到冷酷精明，不變的是對理念的堅持
 published: 2025-07-17
 category: 閱讀隨筆
-bookAuthor: 羅伯特·哈里斯
+bookAuthor: 羅伯特·哈里斯【英】
 tags: [前歐洲, 西塞羅, 凱撒]
 featured: false
 //readingNumber: 23

@@ -1,6 +1,6 @@
 ---
 title: VIBE CODING
-description: 有趣，也比想像容易
+description: 用AI寫程式有趣，也比想像更容易
 published: 2026-10-10
 category: 行旅與隨想
 tags:  [科技, AI, 懷舊]

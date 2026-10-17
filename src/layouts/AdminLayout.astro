@@ -1,0 +1,26 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import '../styles/admin.css';
+const {title} = Astro.props;
+---
+<BaseLayout title={`${title}｜站主管理`} noindex={true}>
+  <article class="article-shell admin-shell" data-pagefind-ignore>
+    <header class="article-header"><p class="eyebrow">Admin</p><h1>{title}</h1></header>
+    <p data-admin-status>正在確認登入狀態……</p>
+    <div data-admin-content hidden>
+      <nav class="admin-nav" aria-label="站主管理">
+        <a href="/admin">管理首頁</a><a href="/admin-comments">回覆留言</a><a href="/dashboard">Dashboard</a>
+        <button type="button" data-admin-logout>登出</button>
+      </nav>
+      <slot />
+    </div>
+  </article>
+</BaseLayout>
+<script>
+  import {ensureAdmin,adminFetch} from '../lib/admin';
+  if (await ensureAdmin()) document.querySelector('[data-admin-status]')?.remove();
+  document.querySelector('[data-admin-logout]')?.addEventListener('click', async () => {
+    try { await adminFetch('/admin-logout', {method:'POST'}); location.replace('/admin'); }
+    catch { alert('登出失敗，請再試一次。'); }
+  });
+</script>

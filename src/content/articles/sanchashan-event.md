@@ -3,7 +3,7 @@ title: 成為真正的人 與 當太陽墜毀在哈因沙山
 description: 真實魔幻的台灣歷史
 published: 2024-11-20
 category: 閱讀隨筆
-bookAuthor: 甘耀明，朱和之
+bookAuthor: 甘耀明【台】，朱和之【台】
 tags: [二戰, 中央山脈, 台灣, 日本]
 featured: false
 draft: true

@@ -3,7 +3,7 @@ title: 大稻埕落日
 description: 架空歷史的1963年，一個不一樣的大稻埕
 published: 2024-07-19
 category: 閱讀隨筆
-bookAuthor: 譚端
+bookAuthor: 譚端【台】
 tags: [台灣, 架空歷史]
 //featured: true
 cover: /images/covers/tataocheng-sunset.jpg

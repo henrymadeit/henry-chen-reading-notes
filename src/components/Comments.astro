@@ -2,7 +2,7 @@
 const { slug } = Astro.props;
 ---
 
-<section class="comments" data-comments data-slug={slug}>
+<section id="comments" class="comments" data-comments data-slug={slug}>
   <div class="comment-list" data-comment-list>
     <p class="comment-loading">載入留言中……</p>
   </div>

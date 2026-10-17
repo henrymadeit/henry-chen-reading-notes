@@ -3,7 +3,7 @@ title: 台灣漫遊錄
 description: 文字表面是日治台灣的美食旅行，背後卻緩緩湧現殖民地人民的順從、討好與無奈
 published: 2026-07-17
 category: 台灣與世界
-bookAuthor: 楊双子
+bookAuthor: 楊双子【台】
 tags: [台灣文學, 殖民, 日治台灣, 小說]
 note: -本書由春山出版社出版，請支持本土作者與在地出版事業-
 //featured: true

@@ -1,0 +1,65 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+import {getCollection} from 'astro:content';
+import {visibleArticles} from '../lib/articles';
+const titles = Object.fromEntries(visibleArticles(await getCollection('articles')).map(a => [a.id,a.data.title]));
+---
+<AdminLayout title="回覆留言">
+  <div id="admin-comments" data-titles={JSON.stringify(titles)}>
+    <p class="admin-note">最新留言與回覆排在前面。可以直接回覆，也可以前往文章查看完整對話。版主只能修改自己的文字。</p>
+    <div data-items></div><p data-status role="status"></p>
+    <div class="admin-actions"><button type="button" data-prev>上一頁</button><span data-page></span><button type="button" data-next>下一頁</button></div>
+  </div>
+</AdminLayout>
+<script>
+  import {ensureAdmin, adminFetch, localTime, articleLink} from '../lib/admin';
+  const root=document.querySelector<HTMLElement>('#admin-comments')!;
+  const titles:Record<string,string>=JSON.parse(root.dataset.titles||'{}');
+  const list=root.querySelector<HTMLElement>('[data-items]')!;
+  const status=root.querySelector<HTMLElement>('[data-status]')!;
+  const prev=root.querySelector<HTMLButtonElement>('[data-prev]')!;
+  const next=root.querySelector<HTMLButtonElement>('[data-next]')!;
+  let offset=0;
+  async function load() {
+    prev.disabled=true;next.disabled=true;status.textContent='載入中……';
+    try {
+      const data=await adminFetch(`/api/admin-comments?offset=${offset}`);list.replaceChildren();
+      for(const item of data.items) {
+        const card=document.createElement('section');card.className='admin-card';
+        const meta=document.createElement('p');meta.className='admin-note';meta.textContent=`${item.is_owner?'[Henry]':item.name} · ${localTime(item.created_at)} · ${item.type==='reply'?'回覆':'留言'}`;
+        const a=document.createElement('a');a.href=articleLink(item.slug)+'#comments';a.textContent=titles[item.slug]||item.slug;
+        const message=document.createElement('p');message.className='admin-message';message.textContent=item.message;
+        const actions=document.createElement('div');actions.className='admin-actions';
+        const reply=document.createElement('button');reply.type='button';reply.textContent='回覆';
+        actions.append(reply);card.append(meta,a,message,actions);
+        function editor(edit:boolean) {
+          if(card.querySelector('form'))return;
+          const form=document.createElement('form');const text=document.createElement('textarea');text.rows=4;text.maxLength=1000;text.required=true;text.ariaLabel=edit?'修改自己的留言':`回覆 ${item.name}`;
+          if(edit)text.value=message.textContent||'';
+          const submit=document.createElement('button');submit.type='submit';submit.textContent=edit?'儲存修改':'送出回覆';
+          const cancel=document.createElement('button');cancel.type='button';cancel.textContent='取消';cancel.onclick=()=>form.remove();
+          const feedback=document.createElement('p');feedback.setAttribute('role','status');
+          form.append(text,submit,cancel,feedback);card.append(form);text.focus();
+          form.onsubmit=async e=>{
+            e.preventDefault();if(!text.value.trim())return;submit.disabled=true;cancel.disabled=true;
+            try {
+              const body=edit?{id:item.id,action:item.type==='reply'?'thread-edit':'edit',message:text.value.trim()}:
+                {comment_id:item.comment_id,target_type:item.type,target_id:item.id,message:text.value.trim()};
+              await adminFetch(`/api/comments/${encodeURIComponent(item.slug)}`,{method:edit?'PATCH':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+              if(edit){message.textContent=text.value.trim();form.remove();}
+              else {form.remove();status.textContent='回覆已送出。';await load();}
+            }catch(error){feedback.textContent=error instanceof Error?error.message:'送出失敗';}
+            finally{submit.disabled=false;cancel.disabled=false;}
+          };
+        }
+        reply.onclick=()=>editor(false);
+        if(item.is_owner){const edit=document.createElement('button');edit.type='button';edit.textContent='修改';edit.onclick=()=>editor(true);actions.append(edit);}
+        list.append(card);
+      }
+      status.textContent=data.items.length?'':'目前沒有留言。';prev.disabled=offset===0;next.disabled=!data.more;
+      root.querySelector<HTMLElement>('[data-page]')!.textContent=`第 ${Math.floor(offset/50)+1} 頁`;
+    }catch(error){status.textContent=error instanceof Error?error.message:'載入失敗';}
+  }
+  prev.onclick=()=>{offset=Math.max(0,offset-50);void load();};next.onclick=()=>{offset+=50;void load();};
+  if(await ensureAdmin())void load();
+</script>
