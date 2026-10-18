@@ -1,40 +1,60 @@
 ---
 const { slug } = Astro.props;
 ---
-
 <section id="comments" class="comments" data-comments data-slug={slug}>
-  <div class="comment-list" data-comment-list>
-    <p class="comment-loading">載入留言中……</p>
-  </div>
+  <h2 data-reader-greeting>
+    謝謝來訪，請留個稱呼，讓我知道您來過
+  </h2>
+
+  <button
+    type="button"
+    class="reader-change-name"
+    data-reader-change-name
+    hidden
+  >更改稱呼</button>
+
+  <form class="comment-form" data-reader-name-form>
+    <input
+      type="text"
+      name="name"
+      aria-label="您希望如何被稱呼？"
+      placeholder="名字或暱稱都可以，不一定要留言喲"
+      maxlength="40"
+      required
+    />
+
+    <div class="comment-submit-row">
+      <span
+        class="comment-status"
+        data-reader-name-status
+        role="status"
+        aria-live="polite"
+      ></span>
+      <button type="submit">留下稱呼</button>
+    </div>
+  </form>
 
   <h2>歡迎留言</h2>
 
   <form class="comment-form" data-comment-form>
-    <label>
-      您希望如何被稱呼？
-      <input
-        type="text"
-        name="name"
-        maxlength="40"
-        required
-      />
-    </label>
-
-    <label>
-      寫下您的留言
-      <textarea
-        name="message"
-        rows="4"
-        maxlength="1000"
-        required
-      ></textarea>
-    </label>
+    <textarea
+      name="message"
+      aria-label="歡迎留言"
+      placeholder="請在這裡告訴我你的想法"
+      rows="4"
+      maxlength="1000"
+      required
+    ></textarea>
 
     <div class="comment-submit-row">
       <span class="comment-status" data-comment-status></span>
       <button type="submit">送出留言</button>
     </div>
   </form>
+
+  <div class="comment-list" data-comment-list>
+    <p class="comment-loading">載入留言中……</p>
+  </div>
 </section>
 
 <script>
@@ -83,13 +103,88 @@ const { slug } = Astro.props;
     let isAdmin = false;
     let activeForm: HTMLElement | null = null;
 
-    const mainName =
-      form.elements.namedItem('name') as HTMLInputElement;
+    const nameForm =
+      section.querySelector<HTMLFormElement>('[data-reader-name-form]')!;
 
-    mainName.value =
-      localStorage.getItem(savedNameKey) ?? '';
+    const nameStatus =
+      section.querySelector<HTMLElement>('[data-reader-name-status]')!;
+
+    const mainName =
+      nameForm.elements.namedItem('name') as HTMLInputElement;
+
+    const greeting =
+      section.querySelector<HTMLElement>('[data-reader-greeting]')!;
+
+    const changeName =
+      section.querySelector<HTMLButtonElement>('[data-reader-change-name]')!;
+
+    function showNamedVisitor(name: string) {
+      greeting.textContent = '謝謝 ' + name + ' 您的來訪';
+      nameForm.hidden = true;
+      changeName.hidden = false;
+    }
+
+    mainName.value = localStorage.getItem(savedNameKey) ?? '';
+
+    if (mainName.value.trim()) {
+      showNamedVisitor(mainName.value.trim());
+    }
+
+    changeName.addEventListener('click', () => {
+      greeting.textContent = '您希望如何被稱呼？';
+      nameForm.hidden = false;
+      changeName.hidden = true;
+      nameStatus.textContent = '';
+      mainName.focus();
+    });
+
+    nameForm.addEventListener('submit', async event => {
+      event.preventDefault();
+
+      const name = mainName.value.trim();
+      if (!name || isAdmin) return;
+
+      const button =
+        nameForm.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+
+      button.disabled = true;
+      nameStatus.textContent = '儲存中……';
+
+      try {
+        const response = await fetch('/api/reader-name', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({name})
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            result.error || '名字儲存失敗，請再試一次。'
+          );
+        }
+
+        localStorage.setItem(savedNameKey, name);
+        mainName.value = name;
+        nameStatus.textContent = '';
+        showNamedVisitor(name);
+      } catch (error) {
+        nameStatus.textContent =
+          error instanceof Error
+            ? error.message
+            : '名字儲存失敗，請再試一次。';
+      } finally {
+        button.disabled = false;
+      }
+    });
+
     function parseDatabaseDate(value: string): Date {
-      const normalized = value.trim().replace(' ', 'T').replace(/Z$/i, '');
+      const normalized =
+        value.trim().replace(' ', 'T').replace(/Z$/i, '');
+
       return new Date(`${normalized}Z`);
     }
 
@@ -114,15 +209,12 @@ const { slug } = Astro.props;
       button.type = 'button';
       button.className = className;
       button.textContent = label;
-
       button.addEventListener('click', click);
 
       return button;
     }
 
-    /* ======================================================
-       Comment editing
-       ====================================================== */
+    /* 留言編輯 */
 
     function editTokenKey(id: number) {
       return `comment-edit-token:${id}`;
@@ -138,10 +230,7 @@ const { slug } = Astro.props;
     }
 
     function canEditComment(comment: ThreadComment) {
-      // Henry can edit only Henry-owned root comments, with no time limit.
       if (comment.is_owner === 1) return isAdmin;
-
-      // When logged in as admin, Henry cannot edit visitor comments.
       if (isAdmin) return false;
 
       const token =
@@ -159,7 +248,6 @@ const { slug } = Astro.props;
       if (!editedAt) return;
 
       const edited = document.createElement('span');
-
       edited.className = 'comment-edited';
       edited.textContent = '已編輯';
 
@@ -173,14 +261,10 @@ const { slug } = Astro.props;
       activeForm?.remove();
 
       const editForm = document.createElement('form');
-
-      editForm.className =
-        'comment-reply-form comment-edit-form';
-
+      editForm.className = 'comment-reply-form comment-edit-form';
       activeForm = editForm;
 
       const heading = document.createElement('div');
-
       heading.className = 'reply-form-heading';
       heading.textContent = '修改留言';
 
@@ -197,7 +281,6 @@ const { slug } = Astro.props;
       editForm.appendChild(heading);
 
       const textarea = document.createElement('textarea');
-
       textarea.value = comment.message;
       textarea.rows = 4;
       textarea.maxLength = 1000;
@@ -206,77 +289,61 @@ const { slug } = Astro.props;
       editForm.appendChild(textarea);
 
       const row = document.createElement('div');
-
       row.className = 'comment-submit-row';
 
       const feedback = document.createElement('span');
-
       feedback.className = 'comment-status';
 
       const save = document.createElement('button');
-
       save.type = 'submit';
       save.textContent = '儲存';
 
       row.append(feedback, save);
       editForm.appendChild(row);
 
-      editForm.addEventListener(
-        'submit',
-        async (event) => {
-          event.preventDefault();
+      editForm.addEventListener('submit', async event => {
+        event.preventDefault();
 
-          const message = textarea.value.trim();
+        const message = textarea.value.trim();
+        if (!message) return;
 
-          if (!message) return;
+        save.disabled = true;
+        feedback.textContent = '儲存中⋯⋯';
 
-          save.disabled = true;
-          feedback.textContent = '儲存中⋯⋯';
+        try {
+          const editToken =
+            localStorage.getItem(editTokenKey(comment.id)) ?? '';
 
-          try {
-            const editToken =
-              localStorage.getItem(
-                editTokenKey(comment.id)
-              ) ?? '';
+          const response = await fetch(apiUrl, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              id: comment.id,
+              action: 'edit',
+              message,
+              editToken
+            })
+          });
 
-            const response = await fetch(apiUrl, {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                id: comment.id,
-                action: 'edit',
-                message,
-                editToken
-              })
-            });
+          const result = await response.json();
 
-            const result = await response.json();
-
-            if (!response.ok) {
-              throw new Error(
-                result.error || '修改失敗'
-              );
-            }
-
-            activeForm = null;
-
-            await loadComments();
-
-          } catch (error) {
-            feedback.textContent =
-              error instanceof Error
-                ? error.message
-                : '修改失敗';
-
-            save.disabled = false;
+          if (!response.ok) {
+            throw new Error(result.error || '修改失敗');
           }
-        }
-      );
 
-      const actions =
-        article.querySelector('.comment-actions');
+          activeForm = null;
+          await loadComments();
+        } catch (error) {
+          feedback.textContent =
+            error instanceof Error ? error.message : '修改失敗';
+
+          save.disabled = false;
+        }
+      });
+
+      const actions = article.querySelector('.comment-actions');
 
       if (actions) {
         actions.after(editForm);
@@ -302,31 +369,24 @@ const { slug } = Astro.props;
       const button = makeButton(
         '編輯',
         'comment-edit-button',
-        () => openEditCommentForm(
-          comment,
-          article
-        )
+        () => openEditCommentForm(comment, article)
       );
 
       wrapper.appendChild(button);
 
       /*
-       * Henry 自己的留言：永久可編輯，不顯示截止時間。
-       * 訪客自己的留言：顯示「(HH:MM 前可編輯)」，60 分鐘後整組消失。
+       * Henry 自己的留言永久可編輯。
+       * 訪客自己的留言於 60 分鐘後移除編輯入口。
        */
       if (!(comment.is_owner === 1 && isAdmin)) {
-        const created =
-          parseDatabaseDate(comment.created_at);
+        const created = parseDatabaseDate(comment.created_at);
 
         const deadline = new Date(
           created.getTime() + EDIT_WINDOW_MS
         );
 
-        const deadlineText =
-          document.createElement('span');
-
-        deadlineText.className =
-          'comment-edit-deadline';
+        const deadlineText = document.createElement('span');
+        deadlineText.className = 'comment-edit-deadline';
 
         deadlineText.textContent =
           `(${new Intl.DateTimeFormat('zh-TW', {
@@ -338,17 +398,14 @@ const { slug } = Astro.props;
 
         wrapper.appendChild(deadlineText);
 
-        const remaining =
-          remainingEditTime(comment);
+        const remaining = remainingEditTime(comment);
 
         if (remaining > 0) {
           window.setTimeout(() => {
             wrapper.remove();
 
             if (
-              activeForm?.classList.contains(
-                'comment-edit-form'
-              )
+              activeForm?.classList.contains('comment-edit-form')
             ) {
               activeForm.remove();
               activeForm = null;
@@ -360,9 +417,7 @@ const { slug } = Astro.props;
       return wrapper;
     }
 
-    /* ======================================================
-       Likes
-       ====================================================== */
+    /* 愛心 */
 
     function likeButton(
       id: number,
@@ -374,8 +429,7 @@ const { slug } = Astro.props;
           ? `comment-liked-${id}`
           : `thread-reply-liked:${id}`;
 
-      let liked =
-        localStorage.getItem(key) === '1';
+      let liked = localStorage.getItem(key) === '1';
 
       const button = makeButton(
         `${liked ? '♥' : '♡'} ${count}`,
@@ -404,15 +458,10 @@ const { slug } = Astro.props;
               })
             });
 
-            const result =
-              await response.json();
-
+            const result = await response.json();
             const value = result.likes;
 
-            if (
-              !response.ok ||
-              typeof value !== 'number'
-            ) {
+            if (!response.ok || typeof value !== 'number') {
               throw new Error();
             }
 
@@ -424,33 +473,22 @@ const { slug } = Astro.props;
               localStorage.removeItem(key);
             }
 
-            button.classList.toggle(
-              'liked',
-              liked
-            );
-
-            button.textContent =
-              `${liked ? '♥' : '♡'} ${value}`;
-
+            button.classList.toggle('liked', liked);
+            button.textContent = `${liked ? '♥' : '♡'} ${value}`;
           } catch {
-            // Keep previous count on failure.
+            // 失敗時保留原本的愛心數。
           } finally {
             button.disabled = false;
           }
         }
       );
 
-      button.classList.toggle(
-        'liked',
-        liked
-      );
+      button.classList.toggle('liked', liked);
 
       return button;
     }
 
-    /* ======================================================
-       Reply form
-       ====================================================== */
+    /* 回覆表單 */
 
     function openReplyForm(
       comment: ThreadComment,
@@ -461,25 +499,15 @@ const { slug } = Astro.props;
     ) {
       activeForm?.remove();
 
-      const replyForm =
-        document.createElement('form');
-
-      replyForm.className =
-        'comment-reply-form';
-
-      replyForm.style.marginLeft =
-        `${depth}rem`;
+      const replyForm = document.createElement('form');
+      replyForm.className = 'comment-reply-form';
+      replyForm.style.marginLeft = `${depth}rem`;
 
       activeForm = replyForm;
 
-      const heading =
-        document.createElement('div');
-
-      heading.className =
-        'reply-form-heading';
-
-      heading.textContent =
-        `回覆 ${target.name}`;
+      const heading = document.createElement('div');
+      heading.className = 'reply-form-heading';
+      heading.textContent = `回覆 ${target.name}`;
 
       const cancel = makeButton(
         '取消',
@@ -493,49 +521,30 @@ const { slug } = Astro.props;
       heading.appendChild(cancel);
       replyForm.appendChild(heading);
 
-      let nameInput:
-        HTMLInputElement | null = null;
+      let nameInput: HTMLInputElement | null = null;
 
       if (isAdmin) {
-        const owner =
-          document.createElement('span');
-
-        owner.textContent =
-          '以 [Henry] 回覆';
-
+        const owner = document.createElement('span');
+        owner.textContent = '以 [Henry] 回覆';
         replyForm.appendChild(owner);
-
       } else {
-        const label =
-          document.createElement('label');
+        const label = document.createElement('label');
+        label.textContent = '您希望如何被稱呼？';
 
-        label.textContent =
-          '您希望如何被稱呼？';
-
-        nameInput =
-          document.createElement('input');
-
+        nameInput = document.createElement('input');
         nameInput.name = 'name';
         nameInput.maxLength = 40;
         nameInput.required = true;
-
-        nameInput.value =
-          localStorage.getItem(
-            savedNameKey
-          ) ?? '';
+        nameInput.value = localStorage.getItem(savedNameKey) ?? '';
 
         label.appendChild(nameInput);
         replyForm.appendChild(label);
       }
 
-      const label =
-        document.createElement('label');
-
+      const label = document.createElement('label');
       label.textContent = '回覆內容';
 
-      const textarea =
-        document.createElement('textarea');
-
+      const textarea = document.createElement('textarea');
       textarea.name = 'message';
       textarea.rows = 3;
       textarea.maxLength = 1000;
@@ -544,94 +553,66 @@ const { slug } = Astro.props;
       label.appendChild(textarea);
       replyForm.appendChild(label);
 
-      const row =
-        document.createElement('div');
+      const row = document.createElement('div');
+      row.className = 'comment-submit-row';
 
-      row.className =
-        'comment-submit-row';
+      const feedback = document.createElement('span');
+      feedback.className = 'comment-status';
 
-      const feedback =
-        document.createElement('span');
-
-      feedback.className =
-        'comment-status';
-
-      const send =
-        document.createElement('button');
-
+      const send = document.createElement('button');
       send.type = 'submit';
       send.textContent = '送出回覆';
 
       row.append(feedback, send);
       replyForm.appendChild(row);
 
-      replyForm.addEventListener(
-        'submit',
-        async (event) => {
-          event.preventDefault();
+      replyForm.addEventListener('submit', async event => {
+        event.preventDefault();
 
-          const name =
-            isAdmin
-              ? 'Henry'
-              : nameInput?.value.trim();
+        const name =
+          isAdmin ? 'Henry' : nameInput?.value.trim();
 
-          const message =
-            textarea.value.trim();
+        const message = textarea.value.trim();
 
-          if (!name || !message) return;
+        if (!name || !message) return;
 
-          send.disabled = true;
-          feedback.textContent =
-            '送出中⋯⋯';
+        send.disabled = true;
+        feedback.textContent = '送出中⋯⋯';
 
-          try {
-            const response =
-              await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                  'Content-Type':
-                    'application/json'
-                },
-                body: JSON.stringify({
-                  comment_id: comment.id,
-                  target_type: target.type,
-                  target_id: target.id,
-                  name,
-                  message
-                })
-              });
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              comment_id: comment.id,
+              target_type: target.type,
+              target_id: target.id,
+              name,
+              message
+            })
+          });
 
-            const result =
-              await response.json();
+          const result = await response.json();
 
-            if (!response.ok) {
-              throw new Error(
-                result.error ||
-                '回覆失敗'
-              );
-            }
-
-            if (!isAdmin) {
-              localStorage.setItem(
-                savedNameKey,
-                name
-              );
-            }
-
-            activeForm = null;
-
-            await loadComments();
-
-          } catch (error) {
-            feedback.textContent =
-              error instanceof Error
-                ? error.message
-                : '回覆失敗';
-
-            send.disabled = false;
+          if (!response.ok) {
+            throw new Error(result.error || '回覆失敗');
           }
+
+          if (!isAdmin) {
+            localStorage.setItem(savedNameKey, name);
+          }
+
+          activeForm = null;
+          await loadComments();
+        } catch (error) {
+          feedback.textContent =
+            error instanceof Error ? error.message : '回覆失敗';
+
+          send.disabled = false;
         }
-      );
+      });
 
       if (after) {
         after.after(replyForm);
@@ -659,6 +640,7 @@ const { slug } = Astro.props;
 
       const edit = document.createElement('form');
       edit.className = 'comment-reply-form';
+
       activeForm = edit;
 
       const heading = document.createElement('div');
@@ -682,6 +664,7 @@ const { slug } = Astro.props;
       textarea.maxLength = 1000;
       textarea.required = true;
       textarea.rows = 3;
+
       edit.appendChild(textarea);
 
       const row = document.createElement('div');
@@ -697,7 +680,7 @@ const { slug } = Astro.props;
       row.append(feedback, save);
       edit.appendChild(row);
 
-      edit.addEventListener('submit', async (event) => {
+      edit.addEventListener('submit', async event => {
         event.preventDefault();
 
         const message = textarea.value.trim();
@@ -709,7 +692,9 @@ const { slug } = Astro.props;
         try {
           const response = await fetch(apiUrl, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
               id: entry.id,
               action: 'thread-edit',
@@ -728,6 +713,7 @@ const { slug } = Astro.props;
         } catch (error) {
           feedback.textContent =
             error instanceof Error ? error.message : '修改失敗';
+
           save.disabled = false;
         }
       });
@@ -736,9 +722,7 @@ const { slug } = Astro.props;
       textarea.focus();
     }
 
-    /* ======================================================
-       Thread entries
-       ====================================================== */
+    /* 回覆顯示 */
 
     function renderEntry(
       comment: ThreadComment,
@@ -749,50 +733,29 @@ const { slug } = Astro.props;
       const target: Target = {
         type: 'reply',
         id: entry.id,
-        name: entry.is_owner
-          ? '[Henry]'
-          : entry.name
+        name: entry.is_owner ? '[Henry]' : entry.name
       };
 
-      const item =
-        document.createElement('div');
+      const item = document.createElement('div');
+      item.className = 'comment-thread-entry';
+      item.style.marginLeft = `${depth - 1}rem`;
 
-      item.className =
-        'comment-thread-entry';
+      const header = document.createElement('div');
+      header.className = 'comment-header';
 
-      item.style.marginLeft =
-        `${depth - 1}rem`;
-
-      const header =
-        document.createElement('div');
-
-      header.className =
-        'comment-header';
-
-      const name =
-        document.createElement('strong');
-
-      name.textContent =
-        entry.is_owner
-          ? '[Henry]'
-          : entry.name;
+      const name = document.createElement('strong');
+      name.textContent = entry.is_owner ? '[Henry]' : entry.name;
 
       header.appendChild(name);
 
-      const to =
-        document.createElement('span');
-
+      const to = document.createElement('span');
       to.className = 'comment-to';
 
       if (entry.target_type === 'comment') {
-        to.textContent =
-          `→ ${comment.name}`;
+        to.textContent = `→ ${comment.name}`;
       } else {
         const recipient =
-          comment.replies.find(
-            (r) =>
-              r.id === entry.target_id
-          );
+          comment.replies.find(r => r.id === entry.target_id);
 
         to.textContent =
           `→ ${
@@ -806,48 +769,33 @@ const { slug } = Astro.props;
 
       header.appendChild(to);
 
-      const time =
-        document.createElement('time');
-
-      time.textContent =
-        formatDate(entry.created_at);
+      const time = document.createElement('time');
+      time.textContent = formatDate(entry.created_at);
 
       header.appendChild(time);
 
-      const message =
-        document.createElement('p');
-
-      message.className =
-        'comment-message';
-
+      const message = document.createElement('p');
+      message.className = 'comment-message';
       message.textContent = entry.message;
 
-      const actions =
-        document.createElement('div');
-
-      actions.className =
-        'comment-actions';
+      const actions = document.createElement('div');
+      actions.className = 'comment-actions';
 
       actions.appendChild(
-        likeButton(
-          entry.id,
-          entry.likes,
-          'reply'
-        )
+        likeButton(entry.id, entry.likes, 'reply')
       );
 
       actions.appendChild(
         makeButton(
           '回覆',
           'comment-reply-button',
-          () =>
-            openReplyForm(
-              comment,
-              target,
-              thread,
-              item,
-              depth
-            )
+          () => openReplyForm(
+            comment,
+            target,
+            thread,
+            item,
+            depth
+          )
         )
       );
 
@@ -861,18 +809,12 @@ const { slug } = Astro.props;
         );
       }
 
-      item.append(
-        header,
-        message,
-        actions
-      );
+      item.append(header, message, actions);
 
       return item;
     }
 
-    /* ======================================================
-       Thread ordering
-       ====================================================== */
+    /* 回覆排序 */
 
     function orderThreadEntries(
       comment: ThreadComment
@@ -884,14 +826,11 @@ const { slug } = Astro.props;
         time: string;
         id: number;
         reply: Reply;
-      }> =
-        comment.replies.map(
-          (reply) => ({
-            time: reply.created_at,
-            id: reply.id,
-            reply
-          })
-        );
+      }> = comment.replies.map(reply => ({
+        time: reply.created_at,
+        id: reply.id,
+        reply
+      }));
 
       entries.sort(
         (a, b) =>
@@ -900,41 +839,25 @@ const { slug } = Astro.props;
       );
 
       const replyIds =
-        new Set(
-          comment.replies.map(
-            (reply) => reply.id
-          )
-        );
+        new Set(comment.replies.map(reply => reply.id));
 
       const children =
-        new Map<
-          string,
-          typeof entries
-        >();
+        new Map<string, typeof entries>();
 
       for (const entry of entries) {
         const reply = entry.reply;
-
         let parent = 'root';
 
         if (
-          reply.target_type ===
-            'reply' &&
+          reply.target_type === 'reply' &&
           replyIds.has(reply.target_id)
         ) {
-          parent =
-            `reply:${reply.target_id}`;
+          parent = `reply:${reply.target_id}`;
         }
 
-        const siblings =
-          children.get(parent) ?? [];
-
+        const siblings = children.get(parent) ?? [];
         siblings.push(entry);
-
-        children.set(
-          parent,
-          siblings
-        );
+        children.set(parent, siblings);
       }
 
       const ordered: Array<{
@@ -942,12 +865,10 @@ const { slug } = Astro.props;
         depth: number;
       }> = [];
 
-      const shown =
-        new Set<string>();
+      const shown = new Set<string>();
 
       function showBranch(
-        entry:
-          (typeof entries)[number],
+        entry: (typeof entries)[number],
         depth: number
       ) {
         const key = `reply:${entry.id}`;
@@ -961,25 +882,16 @@ const { slug } = Astro.props;
           depth
         });
 
-        for (
-          const child of
-          children.get(key) ?? []
-        ) {
-          showBranch(
-            child,
-            depth + 1
-          );
+        for (const child of children.get(key) ?? []) {
+          showBranch(child, depth + 1);
         }
       }
 
-      for (
-        const entry of
-        children.get('root') ?? []
-      ) {
+      for (const entry of children.get('root') ?? []) {
         showBranch(entry, 1);
       }
 
-      // Keep orphaned replies visible.
+      // 保留沒有找到上層留言的回覆。
       for (const entry of entries) {
         showBranch(entry, 1);
       }
@@ -987,157 +899,90 @@ const { slug } = Astro.props;
       return ordered;
     }
 
-    /* ======================================================
-       Load and render comments
-       ====================================================== */
+    /* 載入留言 */
 
     async function loadComments() {
       try {
-        const response =
-          await fetch(apiUrl);
+      const response = await fetch(apiUrl);
 
-        if (!response.ok) {
-          throw new Error();
-        }
+      if (!response.ok) {
+        throw new Error();
+      }
 
-        const comments = (await response.json()) as ThreadComment[];
+      const comments = (await response.json()) as ThreadComment[];
 
-        list!.replaceChildren();
+      list!.replaceChildren();
 
-        if (comments.length === 0) {
-          const empty =
-            document.createElement('p');
+      // 複製「歡迎留言」標題，沿用相同字體與樣式
+        const sourceHeading = section.querySelector(
+        'h2:not([data-reader-greeting])'
+      )!;
 
-          empty.className =
-            'comment-empty';
+      const heading = sourceHeading.cloneNode(false) as HTMLElement;
 
-          empty.textContent =
-            '還沒有留言。';
+      heading.textContent = comments.length > 0
+      ? '現有留言'
+      : '目前沒有留言';
 
-          list!.appendChild(empty);
+      list!.appendChild(heading);
 
-          return;
-        }
+      if (comments.length === 0) {
+         return;
+      }
 
         for (const comment of comments) {
-          const article =
-            document.createElement(
-              'article'
-            );
+          const article = document.createElement('article');
+          article.className = 'comment-item';
 
-          article.className =
-            'comment-item';
+          const header = document.createElement('div');
+          header.className = 'comment-header';
 
-          const header =
-            document.createElement(
-              'div'
-            );
+          const name = document.createElement('strong');
+          name.textContent = comment.name;
 
-          header.className =
-            'comment-header';
+          const time = document.createElement('time');
+          time.textContent = formatDate(comment.created_at);
 
-          const name =
-            document.createElement(
-              'strong'
-            );
+          header.append(name, time);
 
-          name.textContent =
-            comment.name;
+          const message = document.createElement('p');
+          message.className = 'comment-message';
 
-          const time =
-            document.createElement(
-              'time'
-            );
+          const messageText = document.createElement('span');
+          messageText.textContent = comment.message;
 
-          time.textContent =
-            formatDate(
-              comment.created_at
-            );
+          message.appendChild(messageText);
+          addEditedMark(message, comment.edited_at);
 
-          header.append(
-            name,
-            time
-          );
-
-          const message =
-            document.createElement('p');
-
-          message.className =
-            'comment-message';
-
-          const messageText =
-            document.createElement(
-              'span'
-            );
-
-          messageText.textContent =
-            comment.message;
-
-          message.appendChild(
-            messageText
-          );
-
-          addEditedMark(
-            message,
-            comment.edited_at
-          );
-
-          const actions =
-            document.createElement(
-              'div'
-            );
-
-          actions.className =
-            'comment-actions';
+          const actions = document.createElement('div');
+          actions.className = 'comment-actions';
 
           actions.appendChild(
-            likeButton(
-              comment.id,
-              comment.likes,
-              'comment'
-            )
+            likeButton(comment.id, comment.likes, 'comment')
           );
 
-          const thread =
-            document.createElement(
-              'div'
-            );
-
-          thread.className =
-            'comment-thread';
+          const thread = document.createElement('div');
+          thread.className = 'comment-thread';
 
           actions.appendChild(
             makeButton(
               '回覆',
               'comment-reply-button',
-              () =>
-                openReplyForm(
-                  comment,
-                  {
-                    type: 'comment',
-                    id: comment.id,
-                    name:
-                      comment.name
-                  },
-                  thread
-                )
+              () => openReplyForm(
+                comment,
+                {
+                  type: 'comment',
+                  id: comment.id,
+                  name: comment.name
+                },
+                thread
+              )
             )
           );
 
-          /*
-           * Edit appears:
-           * - Henry only for Henry-owned root comments
-           * - visitors only for their own token-backed comments
-           *   within 60 minutes
-           */
-          if (
-            canEditComment(comment)
-          ) {
+          if (canEditComment(comment)) {
             actions.appendChild(
-              makeCommentEditControls(
-                comment,
-                article
-              )
+              makeCommentEditControls(comment, article)
             );
           }
 
@@ -1148,12 +993,7 @@ const { slug } = Astro.props;
             thread
           );
 
-          for (
-            const entry of
-            orderThreadEntries(
-              comment
-            )
-          ) {
+          for (const entry of orderThreadEntries(comment)) {
             thread.appendChild(
               renderEntry(
                 comment,
@@ -1164,151 +1004,109 @@ const { slug } = Astro.props;
             );
           }
 
-          list!.appendChild(
-            article
-          );
+          list!.appendChild(article);
         }
-
       } catch {
-        list!.textContent =
-          '留言載入失敗，請稍後再試。';
+        list!.textContent = '留言載入失敗，請稍後再試。';
       }
     }
 
-    /* ======================================================
-       New root comment
-       ====================================================== */
+    /* 新留言 */
 
-    form.addEventListener(
-      'submit',
-      async (event) => {
-        event.preventDefault();
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
 
-        const button =
-          form.querySelector<HTMLButtonElement>(
-            'button[type="submit"]'
-          );
+      const button =
+        form.querySelector<HTMLButtonElement>('button[type="submit"]');
 
-        const data =
-          new FormData(form);
+      const data = new FormData(form);
+      const name = mainName.value.trim();
+      const message = String(data.get('message') ?? '').trim();
 
-        const name =
-          String(
-            data.get('name') ?? ''
-          ).trim();
+      if (!name) {
+        status.textContent = '請先在上方填寫您希望使用的稱呼。';
+        mainName.focus();
+        return;
+      }
 
-        const message =
-          String(
-            data.get('message') ?? ''
-          ).trim();
+      if (!message) return;
 
-        if (!name || !message) {
-          return;
+      const editToken = isAdmin ? '' : crypto.randomUUID();
+
+      status.textContent = '送出中⋯⋯';
+
+      if (button) {
+        button.disabled = true;
+      }
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name,
+            message,
+            editToken
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || '留言送出失敗');
         }
 
-        /*
-         * Generate a private edit token.
-         * Browser keeps the real token.
-         * D1 stores only its SHA-256 hash.
-         */
-        const editToken =
-          isAdmin ? '' : crypto.randomUUID();
-
-        status.textContent =
-          '送出中⋯⋯';
-
-        if (button) {
-          button.disabled = true;
-        }
-
-        try {
-          const response =
-            await fetch(apiUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type':
-                  'application/json'
-              },
-              body: JSON.stringify({
-                name,
-                message,
-                editToken
-              })
-            });
-
-          const result =
-            await response.json();
-
-          if (!response.ok) {
-            throw new Error(
-              result.error ||
-              '留言送出失敗'
-            );
-          }
-
-          /*
-           * Store token only after D1
-           * successfully created the comment.
-           */
-          if (result.id && !isAdmin) {
-            localStorage.setItem(
-              editTokenKey(
-                Number(result.id)
-              ),
-              editToken
-            );
-          }
-
+        if (result.id && !isAdmin) {
           localStorage.setItem(
-            savedNameKey,
-            name
+            editTokenKey(Number(result.id)),
+            editToken
           );
+        }
 
-          form.reset();
+        localStorage.setItem(savedNameKey, name);
 
-          mainName.value = name;
+        form.reset();
+        mainName.value = name;
 
-          status.textContent =
-            '留言已送出。';
+        if (!isAdmin) {
+          showNamedVisitor(name);
+        }
 
-          await loadComments();
+        status.textContent = '留言已送出。';
 
-        } catch (error) {
-          status.textContent =
-            error instanceof Error
-              ? error.message
-              : '留言送出失敗';
-
-        } finally {
-          if (button) {
-            button.disabled = false;
-          }
+        await loadComments();
+      } catch (error) {
+        status.textContent =
+          error instanceof Error ? error.message : '留言送出失敗';
+      } finally {
+        if (button) {
+          button.disabled = false;
         }
       }
-    );
+    });
 
-    /*
-     * Check Henry admin status before rendering.
-     * Therefore old comments can also display
-     * an Edit button for Henry.
-     */
+    /* 確認站主登入狀態 */
+
     try {
-      const response =
-        await fetch(
-          '/api/admin-status'
-        );
+      const response = await fetch('/api/admin-status');
 
       if (response.ok) {
-        isAdmin =
-          (await response.json())
-            .admin === true;
+        isAdmin = (await response.json()).admin === true;
       }
 
       if (isAdmin) {
         mainName.value = 'Henry';
         mainName.readOnly = true;
-      }
 
+        showNamedVisitor('Henry');
+        changeName.hidden = true;
+
+        nameForm.querySelector<HTMLButtonElement>(
+          'button[type="submit"]'
+        )!.hidden = true;
+      }
     } catch {
       isAdmin = false;
     }
@@ -1318,6 +1116,24 @@ const { slug } = Astro.props;
 </script>
 
 <style>
+  .comment-form[hidden],
+  .reader-change-name[hidden] {
+    display: none;
+  }
+
+  .reader-change-name {
+    margin-bottom: 1rem;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.85rem;
+    text-decoration: underline;
+    cursor: pointer;
+    opacity: 0.7;
+  }
+
   .comments {
     margin-top: 2rem;
   }
@@ -1354,9 +1170,6 @@ const { slug } = Astro.props;
     margin-bottom: -0.01rem !important;
   }
 
-  /*
-   * Edited marker
-   */
   :global(.comment-edited) {
     display: inline-block;
     margin-left: 0.5rem;
@@ -1509,35 +1322,28 @@ const { slug } = Astro.props;
     opacity: 0.5;
   }
 
-  /* Henry 管理操作按鈕 */
   :global(.comment-reply-button),
   :global(.comment-reply-form button) {
     appearance: none !important;
     -webkit-appearance: none !important;
-
     background: #1f5a43 !important;
     border: 1px solid #2f8a63 !important;
     border-radius: 4px;
-
     color: #fff !important;
-
     padding: 0.35rem 0.7rem !important;
     font: inherit;
     font-size: 0.9rem;
-
     opacity: 1;
     cursor: pointer;
     box-shadow: none !important;
   }
 
-  /* 滑鼠移上去稍微亮一點 */
   :global(.comment-reply-button:hover),
   :global(.comment-reply-form button:hover) {
     background: #287454 !important;
     border-color: #43a979 !important;
   }
 
-  /* Replies are ordered under their targets and indented one rem per level. */
   :global(.comment-item) {
     gap: 0;
     line-height: 1.35;
@@ -1565,9 +1371,6 @@ const { slug } = Astro.props;
     margin: 0 !important;
   }
 
-  /*
-   * 回覆 / 編輯 都維持你現在的小型文字按鈕樣式
-   */
   :global(.comment-actions .comment-reply-button),
   :global(.comment-actions .comment-edit-button),
   :global(.reply-form-heading .comment-cancel) {
@@ -1673,4 +1476,23 @@ const { slug } = Astro.props;
   :global(.comment-reply-form button:disabled) {
     opacity: 0.5;
   }
+
+  /* 移除留名區與「歡迎留言」標題上方的分隔線 */
+  .comments h2 {
+    border-top: none;
+  }
+
+  /* 在送出留言與現有留言列表之間加入分隔線 */
+  .comment-list {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border, #d8d8d8);
+  }
+
+  /* 留言列表提示文字：字級與粗細同「歡迎留言」 */
+  .comment-list :global(.comment-list-heading) {
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
 </style>

@@ -125,7 +125,7 @@ const { titles } = Astro.props;
             return (
               Number.isFinite(time) &&
               now - time >= 0 &&
-              now - time < 120 * 60 * 60 * 1000 &&
+              now - time < 720 * 60 * 60 * 1000 &&
               Boolean(titles[item.slug])
             );
 

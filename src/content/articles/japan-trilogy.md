@@ -3,7 +3,7 @@ title: 近代日本三部曲
 description: 在納米比亞顛簸旅程中，閱讀近代日本的形成
 published: 2026-10-013
 category: 歷史與文明
-bookAuthor: D
+bookAuthor: 馬國川
 tags: [海洋文明, 世界史, 貿易, 帝國]
 pinned: true
 //featured: true

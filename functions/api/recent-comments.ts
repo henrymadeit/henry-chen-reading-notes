@@ -15,7 +15,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
           'comment' AS type,
           NULL AS reply_to_name
         FROM comments
-        WHERE created_at >= datetime('now', '-120 hours')
+        WHERE created_at >= datetime('now', '-720 hours')
 
         UNION ALL
 
@@ -58,7 +58,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
           END AS reply_to_name
 
         FROM comment_replies r
-        WHERE r.created_at >= datetime('now', '-120 hours')
+        WHERE r.created_at >= datetime('now', '-720 hours')
 
         ORDER BY created_at DESC, id DESC
         LIMIT 8
