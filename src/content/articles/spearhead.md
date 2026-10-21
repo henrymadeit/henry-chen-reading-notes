@@ -6,7 +6,7 @@ category: 閱讀隨筆
 bookAuthor: 亞當．馬科斯【美】
 tags: [二戰, 戰車, 西線, 德國]
 featured: false
-draft: true
+//draft: true
 //readingNumber: 
 //takeaway: 
 cover: /images/articles/spearhead/spearhead-book-cover.jpg
