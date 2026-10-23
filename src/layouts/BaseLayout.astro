@@ -4,6 +4,7 @@ import Footer from '../components/Footer.astro';
 import '../styles.css';
 const { title = 'Henry Chen 的隨筆', description = '閱讀、旅行，以及台灣與世界的觀察。', noindex = false } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
+import SourceCapture from '../components/SourceCapture.astro';
 ---
 <!doctype html>
 <html lang="zh-Hant" data-theme="dark">
@@ -36,5 +37,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
     data-cf-beacon='{"token":"19d6ce16be3f44209410daa4913c752b"}'>
   </script>
   <!-- End Cloudflare Web Analytics -->
+  <SourceCapture />
 </body>
 </html>

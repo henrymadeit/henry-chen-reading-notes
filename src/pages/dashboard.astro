@@ -8,10 +8,12 @@ const titles = Object.fromEntries(
     a => [a.id, a.data.title]
   )
 );
+import DashboardTrends from '../components/DashboardTrends.astro';
 ---
 
 <AdminLayout title="Dashboard">
   <div id="reader-dashboard" data-titles={JSON.stringify(titles)}>
+    <DashboardTrends />
     <section class="pending-comments" aria-labelledby="pending-heading">
       <div class="pending-heading-row">
         <h2 id="pending-heading">

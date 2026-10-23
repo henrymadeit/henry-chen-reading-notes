@@ -3,16 +3,19 @@ const {slug} = Astro.props;
 ---
 <span data-reader-article={slug} hidden></span>
 <script>
-  const marker = document.querySelector<HTMLElement>('[data-reader-article]');
-  let sent = false;
+  import {captureArrival} from '../lib/traffic-client';
+  const arrival=captureArrival();
+  const marker=document.querySelector<HTMLElement>('[data-reader-article]');
+  let sent=false;
   function track() {
-    if (sent || document.visibilityState !== 'visible' || !marker?.dataset.readerArticle) return;
-    sent = true;
-    void fetch('/api/reader-events', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({slug:marker.dataset.readerArticle}), keepalive:true
-    }).catch(() => {});
+    if(sent || document.visibilityState!=='visible' || !marker?.dataset.readerArticle)return;
+    sent=true;
+    void fetch('/api/reader-events',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({slug:marker.dataset.readerArticle,source:arrival.source,referrer:arrival.referrer}),
+      keepalive:true
+    }).catch(()=>{});
   }
   track();
-  document.addEventListener('visibilitychange', track);
+  document.addEventListener('visibilitychange',track);
 </script>

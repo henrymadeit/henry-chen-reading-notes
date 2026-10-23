@@ -1,0 +1,132 @@
+<section id="dashboard-trends" class="trends-panel">
+  <h2>閱讀與來源趨勢</h2>
+  <label>觀察期間 <select data-trend-days><option value="7">近 7 天</option><option value="30" selected>近 30 天</option><option value="90">近 90 天</option></select></label>
+  <button type="button" data-trend-refresh>重新整理</button>
+  <p role="status" aria-live="polite" data-trend-status>載入中……</p>
+  <div data-trend-content hidden>
+    <p data-trend-coverage class="admin-note"></p>
+    <div data-trend-summary class="trend-summary"></div>
+    <div data-metric-charts class="metric-charts"></div>
+    <details><summary>每日數字</summary><div class="admin-table-wrap"><table class="admin-table" data-daily-table></table></div></details>
+    <h3>來源帶來的文章開啟趨勢</h3>
+    <p class="admin-note">沿用本分頁最近 30 分鐘的進站來源；先到首頁再開文章仍保留來源。這是文章開啟次數，並非進站次數或點擊廣告數。來源可能受 App 與瀏覽器限制；無資料時不推測。</p>
+    <div data-source-legend class="source-legend"></div>
+    <div data-source-chart></div>
+    <div class="admin-table-wrap"><table class="admin-table" data-source-table></table></div>
+    <details><summary>每日來源數字</summary><div class="admin-table-wrap"><table class="admin-table" data-source-daily-table></table></div></details>
+    <h3>文章表現（最多 100 篇，依開啟次數排序）</h3>
+    <div class="admin-table-wrap"><table class="admin-table" data-article-table></table></div>
+    <p class="admin-note">瀏覽器訪客以 Cookie 區分，並非精確真人數。期間訪客數會去重，不能將每日訪客數相加。新增 ♥ 計算按下次數，取消另列；留言數含回覆，均為啟用追蹤後的事件紀錄。站主僅在登入期間排除；今日資料尚未完整。</p>
+  </div>
+</section>
+<style>
+  .trends-panel{margin:1.5rem 0 2.5rem;padding-bottom:2rem;border-bottom:1px solid #7776}
+  .trends-panel h3{margin-top:1.8rem}
+  .trend-summary,.metric-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+  .trend-summary{margin:1rem 0}
+  .trend-summary :global(p){margin:0;padding:.8rem;border:1px solid #7776;border-radius:.5rem}
+  .metric-charts :global(figure){margin:0;min-width:0}
+  .trends-panel :global(svg){display:block;width:100%;height:auto;min-height:120px}
+  .trends-panel :global(figcaption){font-weight:600}
+  .source-legend{display:flex;flex-wrap:wrap;gap:.5rem 1rem;margin:.7rem 0}
+  .source-legend :global(span){display:flex;align-items:center;gap:.3rem}
+  .source-legend :global(i){display:inline-block;width:1rem;height:.25rem}
+  @media(max-width:600px){.metric-charts{grid-template-columns:1fr}}
+</style>
+<script>
+  import {ensureAdmin,adminFetch,articleLink,localTime} from '../lib/admin';
+  const root=document.querySelector<HTMLElement>('#dashboard-trends')!;
+  const period=root.querySelector<HTMLSelectElement>('[data-trend-days]')!;
+  const status=root.querySelector<HTMLElement>('[data-trend-status]')!;
+  const content=root.querySelector<HTMLElement>('[data-trend-content]')!;
+  const titles:Record<string,string>=JSON.parse(document.querySelector<HTMLElement>('#reader-dashboard')?.dataset.titles || '{}');
+  type Row={day:string;views:number;visitors:number;likes:number;unlikes:number;comments:number};
+  type SourceRow={day:string;source:string;views:number;visitors:number};
+  const palette=['#58b5ff','#ffb454','#80d6a4','#e99cdd','#e9d46c','#a9a0ff','#ff8d86','#9bb7c4'];
+  function el<K extends keyof HTMLElementTagNameMap>(tag:K,text?:string) {
+    const node=document.createElement(tag);if(text!==undefined)node.textContent=text;return node;
+  }
+  function table(target:string,headers:string[],values:(string|number|HTMLElement)[][]) {
+    const node=root.querySelector<HTMLTableElement>(target)!;node.replaceChildren();
+    const head=el('thead'),header=el('tr');
+    for(const label of headers){const th=el('th',label);th.scope='col';header.append(th);}
+    head.append(header);const body=el('tbody');
+    for(const valuesRow of values){const tr=el('tr');for(const value of valuesRow){const td=el('td');if(value instanceof HTMLElement)td.append(value);else td.textContent=String(value);tr.append(td);}body.append(tr);}
+    if(!values.length){const tr=el('tr'),td=el('td','此期間尚無紀錄。');td.colSpan=headers.length;tr.append(td);body.append(tr);}
+    node.append(head,body);
+  }
+  type Series={label:string;color:string;values:(number|null)[]};
+  function chart(target:HTMLElement,label:string,dates:string[],series:Series[]) {
+    target.replaceChildren();
+    const ns='http://www.w3.org/2000/svg';
+    const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 720 225');svg.setAttribute('role','img');svg.setAttribute('aria-label',label+'；詳細數字見表格');
+    const add=(tag:string,attrs:Record<string,string>,text?:string)=>{
+      const node=document.createElementNS(ns,tag);for(const [k,v]of Object.entries(attrs))node.setAttribute(k,v);
+      if(text!==undefined)node.textContent=text;svg.append(node);return node;
+    };
+    const max=Math.max(1,...series.flatMap(s=>s.values.filter((v):v is number=>v!==null)));
+    for(let i=0;i<=4;i++){
+      const y=180-i*40;
+      add('line',{x1:'48',x2:'700',y1:String(y),y2:String(y),stroke:'currentColor',opacity:'.18'});
+      add('text',{x:'40',y:String(y+5),'text-anchor':'end',fill:'currentColor','font-size':'13'},String(Math.round(max*i/4*10)/10));
+    }
+    dates.forEach((date,i)=>{if(i===0||i===dates.length-1||i===Math.floor(dates.length/2))
+      add('text',{x:String(48+i*652/Math.max(1,dates.length-1)),y:'210','text-anchor':i===0?'start':i===dates.length-1?'end':'middle',fill:'currentColor','font-size':'13'},date.slice(5));});
+    for(const s of series){
+      let path='';
+      s.values.forEach((value,i)=>{
+        if(value===null)return;
+        const x=48+i*652/Math.max(1,dates.length-1),y=180-value/max*160;
+        path+=(i===0||s.values[i-1]===null?'M':'L')+x+','+y+' ';
+        const dot=add('circle',{cx:String(x),cy:String(y),r:'3',fill:s.color});
+        const tip=document.createElementNS(ns,'title');tip.textContent=dates[i]+' '+s.label+'：'+value;dot.append(tip);
+      });
+      add('path',{d:path,stroke:s.color,fill:'none','stroke-width':'2','vector-effect':'non-scaling-stroke'});
+    }
+    target.append(svg);
+  }
+  let generation=0;
+  async function load(){
+    const current=++generation;status.textContent='載入中……';content.hidden=true;
+    try{
+      const data=await adminFetch('/api/admin-trends?days='+period.value);
+      if(current!==generation)return;
+      const dates=Array.from({length:data.days},(_,i)=>new Date(Date.parse(data.startDay+'T00:00:00Z')+i*86400000).toISOString().slice(0,10));
+      const dayOf=(value:string|null)=>value?new Date(value.replace(' ','T')+'Z').toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'}):null;
+      const first=dayOf(data.coverage.first_event),firstSource=dayOf(data.coverage.first_source);
+      const recorded=(day:string,begin:string|null)=>!!begin&&day>=begin;
+      const daily=new Map<string,Row>((data.daily as Row[]).map(r=>[r.day,r]));
+      const summary=root.querySelector<HTMLElement>('[data-trend-summary]')!;summary.replaceChildren();
+      const metrics=[['views','文章開啟'],['visitors','瀏覽器訪客'],['likes','新增文章 ♥'],['comments','留言／回覆']] as const;
+      for(const [key,label]of metrics)summary.append(el('p',label+'：'+(data.totals[key]??0)));
+      summary.append(el('p','取消文章 ♥：'+(data.totals.unlikes??0)));
+      root.querySelector<HTMLElement>('[data-trend-coverage]')!.textContent=
+        '台灣時間 '+data.startDay+' ～ '+data.today+'。最早事件：'+(data.coverage.first_event?localTime(data.coverage.first_event):'尚無')+
+        '；最早來源：'+(data.coverage.first_source?localTime(data.coverage.first_source):'尚無')+'。首筆紀錄之前留白，首日可能不完整；舊資料不回補來源。';
+      const metricCharts=root.querySelector<HTMLElement>('[data-metric-charts]')!;metricCharts.replaceChildren();
+      metrics.forEach(([key,label],i)=>{
+        const figure=el('figure'),caption=el('figcaption',label),plot=el('div');figure.append(caption,plot);metricCharts.append(figure);
+        chart(plot,label,dates,[{label,color:palette[i],values:dates.map(d=>recorded(d,first)?Number(daily.get(d)?.[key]??0):null)}]);
+      });
+      table('[data-daily-table]',['日期','文章開啟','瀏覽器訪客','新增 ♥','取消 ♥','留言／回覆'],
+        dates.map(d=>[d,...['views','visitors','likes','unlikes','comments'].map(k=>recorded(d,first)?Number((daily.get(d) as any)?.[k]??0):'未有紀錄')]));
+      const sourceKeys=Object.keys(data.sourceLabels) as string[];
+      const sourceDay=new Map<string,number>((data.sourceDaily as SourceRow[]).map(r=>[r.day+'|'+r.source,r.views]));
+      const legend=root.querySelector<HTMLElement>('[data-source-legend]')!;legend.replaceChildren();
+      sourceKeys.forEach((key,i)=>{const item=el('span'),swatch=el('i');swatch.style.backgroundColor=palette[i];item.append(swatch,document.createTextNode(data.sourceLabels[key]));legend.append(item);});
+      chart(root.querySelector<HTMLElement>('[data-source-chart]')!,'各來源文章開啟',dates,
+        sourceKeys.map((key,i)=>({label:data.sourceLabels[key],color:palette[i],values:dates.map(d=>recorded(d,firstSource)?sourceDay.get(d+'|'+key)??0:null)})));
+      const sourceTotal=(data.sources as SourceRow[]).reduce((n,r)=>n+r.views,0);
+      table('[data-source-table]',['來源','文章開啟','占已記錄來源比例','瀏覽器訪客（各來源可重疊）'],
+        (data.sources as SourceRow[]).map(r=>[data.sourceLabels[r.source]||r.source,r.views,sourceTotal?(r.views/sourceTotal*100).toFixed(1)+'%':'—',r.visitors]));
+      table('[data-source-daily-table]',['日期',...sourceKeys.map(k=>data.sourceLabels[k])],
+        dates.map(d=>[d,...sourceKeys.map(k=>recorded(d,firstSource)?sourceDay.get(d+'|'+k)??0:'未有紀錄')]));
+      table('[data-article-table]',['文章','開啟','瀏覽器訪客','新增 ♥','取消 ♥','留言／回覆'],
+        data.articles.map((r:any)=>{const a=el('a',titles[r.slug]||r.slug);a.href=articleLink(r.slug);return[a,r.views,r.visitors,r.likes,r.unlikes,r.comments];}));
+      content.hidden=false;status.textContent='已更新。來源已記錄 '+sourceTotal+' 次文章開啟。';
+    }catch(error){if(current===generation)status.textContent=error instanceof Error?error.message:'無法載入趨勢';}
+  }
+  period.addEventListener('change',()=>void load());
+  root.querySelector('[data-trend-refresh]')!.addEventListener('click',()=>void load());
+  if(await ensureAdmin())void load();
+</script>

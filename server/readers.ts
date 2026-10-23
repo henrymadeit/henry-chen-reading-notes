@@ -9,7 +9,7 @@ export function readerKey(request: Request) {
 export function readerCookie(key: string, request: Request) {
   return `${cookieName}=${key}; Path=/; HttpOnly; SameSite=Lax; Max-Age=31536000${new URL(request.url).protocol === 'https:' ? '; Secure' : ''}`;
 }
-export async function recordEvent(db: D1Database, key: string, slug: string, kind: string, targetId: number | null = null, name?: string) {
+export async function recordEvent(db: D1Database, key: string, slug: string, kind: string, targetId: number | null = null, name?: string, source?: string) {
   const statements = [db.prepare('INSERT INTO readers(reader_key) VALUES (?) ON CONFLICT(reader_key) DO NOTHING').bind(key)];
   if (name) {
     statements.push(db.prepare(`UPDATE readers SET name = ?, name_number =
@@ -23,6 +23,10 @@ export async function recordEvent(db: D1Database, key: string, slug: string, kin
     last_seen = CURRENT_TIMESTAMP WHERE reader_key = ?`).bind(key));
   statements.push(db.prepare(`INSERT INTO reader_events(reader_id, slug, kind, target_id)
     SELECT id, ?, ?, ? FROM readers WHERE reader_key = ?`).bind(slug, kind, targetId, key));
+  if (kind === 'view' && source) {
+    statements.push(db.prepare(`INSERT INTO reader_traffic(reader_id, slug, source)
+      SELECT id, ?, ? FROM readers WHERE reader_key = ?`).bind(slug, source, key));
+  }
   if (['like','unlike','comment-like','comment-unlike','reply-like','reply-unlike'].includes(kind)) {
     const target = kind.startsWith('comment-') ? 'comment' : kind.startsWith('reply-') ? 'reply' : 'article';
     statements.push(db.prepare(`INSERT INTO reader_likes(reader_id, slug, target_type, target_id, liked)
