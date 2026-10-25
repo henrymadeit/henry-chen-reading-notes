@@ -3,6 +3,7 @@ title: 從「養共為患」一書談起
 description: 不同的看法與意外的聯想
 published: 2026-08-28
 category: 台灣與世界
+bookAuthor: 余杰【美】
 tags: [民國, 美國外交, 台灣民主]
 //draft: true
 //note: 哈哈作者會不高興

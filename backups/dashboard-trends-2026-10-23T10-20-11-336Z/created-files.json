@@ -1,0 +1,8 @@
+[
+  "server/traffic.ts",
+  "functions/api/admin-trends.ts",
+  "migrations/2026-10-23-trends.sql",
+  "src/lib/traffic-client.ts",
+  "src/components/SourceCapture.astro",
+  "src/components/DashboardTrends.astro"
+]

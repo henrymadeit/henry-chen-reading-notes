@@ -3,7 +3,8 @@ const { slug } = Astro.props;
 ---
 <section id="comments" class="comments" data-comments data-slug={slug}>
   <h2 data-reader-greeting>
-    謝謝來訪，請留個稱呼，讓我知道您來過
+    留下您的稱呼，讓我知道您來過
+    - Let me know you were here -
   </h2>
 
   <button
@@ -18,7 +19,7 @@ const { slug } = Astro.props;
       type="text"
       name="name"
       aria-label="您希望如何被稱呼？"
-      placeholder="名字或暱稱都可以，不一定要留言喲"
+      placeholder="暱稱也好，不一定要留言喲 - Leave your name here, even no message yet -"
       maxlength="40"
       required
     />
@@ -30,17 +31,17 @@ const { slug } = Astro.props;
         role="status"
         aria-live="polite"
       ></span>
-      <button type="submit">留下稱呼</button>
+      <button type="submit">Save</button>
     </div>
   </form>
 
-  <h2>歡迎留言</h2>
+  <h2>歡迎留言 - Leave your message here -</h2>
 
   <form class="comment-form" data-comment-form>
     <textarea
       name="message"
       aria-label="歡迎留言"
-      placeholder="請在這裡告訴我你的想法"
+      placeholder="請在這裡告訴我你的想法 - Tell me what you think -"
       rows="4"
       maxlength="1000"
       required
@@ -48,7 +49,7 @@ const { slug } = Astro.props;
 
     <div class="comment-submit-row">
       <span class="comment-status" data-comment-status></span>
-      <button type="submit">送出留言</button>
+      <button type="submit">Send</button>
     </div>
   </form>
 
@@ -501,7 +502,7 @@ const { slug } = Astro.props;
 
       const replyForm = document.createElement('form');
       replyForm.className = 'comment-reply-form';
-      replyForm.style.marginLeft = `${depth}rem`;
+      replyForm.style.marginLeft = `${depth * 2}rem`;
 
       activeForm = replyForm;
 
@@ -738,7 +739,7 @@ const { slug } = Astro.props;
 
       const item = document.createElement('div');
       item.className = 'comment-thread-entry';
-      item.style.marginLeft = `${depth - 1}rem`;
+      item.style.marginLeft = `${(depth - 1) * 2}rem`;
 
       const header = document.createElement('div');
       header.className = 'comment-header';
@@ -1405,7 +1406,7 @@ const { slug } = Astro.props;
   :global(.comment-thread) {
     display: grid;
     gap: 0.2rem;
-    margin: 0.5rem 0 0 1rem;
+    margin: 0.5rem 0 0 2rem;
     padding-left: 0;
     min-width: 0;
   }

@@ -1,11 +1,12 @@
 ---
 title: 裝甲先鋒：美國戰車兵從突出部、科隆到魯爾的作戰經歷
-description: 讓我們努力地活下去
+description: 我們只是想在這個時代活下去
 published: 2025-02-25
 category: 閱讀隨筆
 bookAuthor: 亞當．馬科斯【美】
 tags: [二戰, 戰車, 西線, 德國]
-featured: false
+pinned: true
+//featured: true
 //draft: true
 //readingNumber: 
 //takeaway: 

@@ -2,33 +2,18 @@
 import AdminLayout from '../layouts/AdminLayout.astro';
 import { getCollection } from 'astro:content';
 import { visibleArticles } from '../lib/articles';
+import DashboardTrends from '../components/DashboardTrends.astro';
 
 const titles = Object.fromEntries(
   visibleArticles(await getCollection('articles')).map(
     a => [a.id, a.data.title]
   )
 );
-import DashboardTrends from '../components/DashboardTrends.astro';
 ---
 
 <AdminLayout title="Dashboard">
   <div id="reader-dashboard" data-titles={JSON.stringify(titles)}>
     <DashboardTrends />
-    <section class="pending-comments" aria-labelledby="pending-heading">
-      <div class="pending-heading-row">
-        <h2 id="pending-heading">
-          未回覆留言 <span data-pending-count></span>
-        </h2>
-        <button type="button" data-pending-refresh>重新整理</button>
-      </div>
-
-      <p role="status" data-pending-status>載入中……</p>
-      <div data-pending-items></div>
-
-      <button type="button" data-pending-more hidden>
-        載入更多
-      </button>
-    </section>
 
     <p class="admin-note">
       每列代表一個瀏覽器，並非經過驗證的真人。同名暱稱依序編號；不同裝置不自動合併。僅顯示啟用後的紀錄，已登入站主的操作不列入。
@@ -107,154 +92,13 @@ import DashboardTrends from '../components/DashboardTrends.astro';
     root.dataset.titles || '{}'
   );
 
-  /* =========================
-     未回覆留言
-     ========================= */
-
-  type PendingMessage = {
-    id: number;
-    slug: string;
-    comment_id: number;
-    type: 'comment' | 'reply';
-    name: string;
-    message: string;
-    created_at: string;
-  };
-
-  const pendingList = root.querySelector<HTMLElement>(
-    '[data-pending-items]'
-  )!;
-
-  const pendingStatus = root.querySelector<HTMLElement>(
-    '[data-pending-status]'
-  )!;
-
-  const pendingCount = root.querySelector<HTMLElement>(
-    '[data-pending-count]'
-  )!;
-
-  const pendingRefresh = root.querySelector<HTMLButtonElement>(
-    '[data-pending-refresh]'
-  )!;
-
-  const pendingMore = root.querySelector<HTMLButtonElement>(
-    '[data-pending-more]'
-  )!;
-
-  let pendingOffset = 0;
-  let pendingBusy = false;
-
-  function renderPendingMessage(item: PendingMessage) {
-    const card = document.createElement('article');
-    card.className = 'pending-message';
-
-    const body = document.createElement('div');
-    body.className = 'pending-message-body';
-
-    const meta = document.createElement('p');
-    meta.className = 'pending-message-meta';
-
-    const name = document.createElement('strong');
-    name.textContent = item.name;
-
-    const time = document.createElement('span');
-    time.className = 'admin-note';
-    time.textContent =
-      `${localTime(item.created_at)} · ${
-        item.type === 'reply' ? '回覆' : '留言'
-      }`;
-
-    meta.append(name, time);
-
-    const article = document.createElement('a');
-    article.href = articleLink(item.slug) + '#comments';
-    article.textContent = titles[item.slug] || item.slug;
-
-    const message = document.createElement('p');
-    message.className = 'pending-message-text';
-    message.textContent = item.message;
-
-    body.append(meta, article, message);
-
-    const reply = document.createElement('a');
-    reply.className = 'pending-reply-link';
-    reply.href = articleLink(item.slug) + '#comments';
-    reply.textContent = '前往回覆 →';
-
-    card.append(body, reply);
-    pendingList.append(card);
-  }
-
-  async function loadPending(reset = true) {
-    if (pendingBusy) return;
-
-    pendingBusy = true;
-    pendingRefresh.disabled = true;
-    pendingMore.disabled = true;
-    pendingStatus.textContent = '載入中……';
-
-    const requestedOffset = reset ? 0 : pendingOffset;
-
-    try {
-      const data = await adminFetch(
-        `/api/admin-pending-comments?offset=${requestedOffset}`
-      ) as {
-        items: PendingMessage[];
-        total: number;
-        more: boolean;
-      };
-
-      if (reset) {
-        pendingList.replaceChildren();
-      }
-
-      for (const item of data.items) {
-        renderPendingMessage(item);
-      }
-
-      pendingOffset = requestedOffset + data.items.length;
-      pendingCount.textContent = data.total ? `${data.total} 則` : '';
-      pendingMore.hidden = !data.more;
-
-      pendingStatus.textContent =
-        pendingList.childElementCount ? '' : '沒有未回覆留言';
-    } catch (error) {
-      pendingStatus.textContent = error instanceof Error
-        ? error.message
-        : '無法讀取未回覆留言，請重新整理。';
-    } finally {
-      pendingBusy = false;
-      pendingRefresh.disabled = false;
-      pendingMore.disabled = false;
-    }
-  }
-
-  pendingRefresh.onclick = () => void loadPending(true);
-  pendingMore.onclick = () => void loadPending(false);
-
-  /* =========================
-     讀者列表與閱讀足跡
-     ========================= */
-
   const form = root.querySelector<HTMLFormElement>(
     '[data-reader-search]'
   )!;
-
-  const rows = root.querySelector<HTMLElement>(
-    '[data-reader-rows]'
-  )!;
-
-  const status = root.querySelector<HTMLElement>(
-    '[data-reader-status]'
-  )!;
-
-  const prev = root.querySelector<HTMLButtonElement>(
-    '[data-prev]'
-  )!;
-
-  const next = root.querySelector<HTMLButtonElement>(
-    '[data-next]'
-  )!;
+  const rows = root.querySelector<HTMLElement>('[data-reader-rows]')!;
+  const status = root.querySelector<HTMLElement>('[data-reader-status]')!;
+  const prev = root.querySelector<HTMLButtonElement>('[data-prev]')!;
+  const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
 
   let offset = 0;
   let selected: number | null = null;
@@ -300,9 +144,7 @@ import DashboardTrends from '../components/DashboardTrends.astro';
 
       if (!selected) {
         root.querySelector<HTMLElement>('[data-totals]')!.textContent =
-          `${data.totals.readers} 位瀏覽器讀者 · ${
-            data.totals.visits
-          } 次來訪 · ${data.totals.views} 次文章開啟`;
+          `${data.totals.readers} 位瀏覽器讀者 · ${data.totals.visits} 次來訪 · ${data.totals.views} 次文章開啟`;
 
         rows.replaceChildren();
 
@@ -311,6 +153,7 @@ import DashboardTrends from '../components/DashboardTrends.astro';
           const td = document.createElement('td');
           const button = document.createElement('button');
 
+          button.type = 'button';
           button.textContent = reader.label;
           button.title = `瀏覽器編號 ${reader.id}`;
 
@@ -344,14 +187,11 @@ import DashboardTrends from '../components/DashboardTrends.astro';
         root.querySelector<HTMLElement>(
           '[data-reader-meta]'
         )!.textContent =
-          `瀏覽器編號 ${data.reader.id} · 首次出現 ${
-            localTime(data.reader.first_seen)
-          } · ${data.reader.visits} 次來訪`;
+          `瀏覽器編號 ${data.reader.id} · 首次出現 ${localTime(data.reader.first_seen)} · ${data.reader.visits} 次來訪`;
 
         const list = root.querySelector<HTMLElement>(
           '[data-reader-events]'
         )!;
-
         list.replaceChildren();
 
         for (const article of data.articles) {
@@ -363,8 +203,8 @@ import DashboardTrends from '../components/DashboardTrends.astro';
 
           a.href = articleLink(article.slug) +
             (article.messages.length ? '#comments' : '');
-
           a.textContent = titles[article.slug] || article.slug;
+
           heading.append(a);
           card.append(heading);
 
@@ -377,9 +217,7 @@ import DashboardTrends from '../components/DashboardTrends.astro';
               : '留言';
 
             p.textContent =
-              `${action}，${localTime(message.created_at)}：${
-                message.message ?? '（原文已不存在）'
-              }`;
+              `${action}，${localTime(message.created_at)}：${message.message ?? '（原文已不存在）'}`;
 
             card.append(p);
           }
@@ -387,24 +225,15 @@ import DashboardTrends from '../components/DashboardTrends.astro';
           if (article.like_time) {
             const p = document.createElement('p');
             p.className = 'reader-activity';
-
             p.textContent =
-              `${article.liked ? '愛心' : '愛心已取消'}，${
-                localTime(article.like_time)
-              }`;
-
+              `${article.liked ? '愛心' : '愛心已取消'}，${localTime(article.like_time)}`;
             card.append(p);
           }
 
           const access = document.createElement('p');
           access.className = 'reader-activity';
-
           access.textContent =
-            `Access，${article.accesses} 次，最後 Access：${
-              article.last_access
-                ? localTime(article.last_access)
-                : '尚無紀錄'
-            }`;
+            `Access，${article.accesses} 次，最後 Access：${article.last_access ? localTime(article.last_access) : '尚無紀錄'}`;
 
           card.append(access);
           list.append(card);
@@ -455,85 +284,10 @@ import DashboardTrends from '../components/DashboardTrends.astro';
     void load();
   };
 
-  if (await ensureAdmin()) {
-    void loadPending();
-    void load();
-  }
+  if (await ensureAdmin()) void load();
 </script>
 
 <style is:global>
-  #reader-dashboard .pending-comments {
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid var(--border, #666);
-  }
-
-  #reader-dashboard .pending-heading-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: .75rem;
-    margin-bottom: .75rem;
-  }
-
-  #reader-dashboard .pending-heading-row h2 {
-    margin: 0;
-  }
-
-  #reader-dashboard [data-pending-count] {
-    margin-left: .5rem;
-    font-size: .85rem;
-    font-weight: normal;
-    opacity: .7;
-  }
-
-  #reader-dashboard .pending-message {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
-    padding: 1rem 0;
-    border-top: 1px solid var(--border, #666);
-  }
-
-  #reader-dashboard .pending-message-body {
-    flex: 1;
-    min-width: 0;
-  }
-
-  #reader-dashboard .pending-message-meta {
-    display: flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: .75rem;
-    margin: 0 0 .35rem;
-  }
-
-  #reader-dashboard .pending-message-text {
-    margin: .35rem 0 0;
-    line-height: 1.65;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-  }
-
-  #reader-dashboard .pending-reply-link {
-    flex-shrink: 0;
-    padding: .5rem .75rem;
-    border: 1px solid var(--border, #666);
-    border-radius: 6px;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  #reader-dashboard [data-pending-more] {
-    margin-top: 1rem;
-  }
-
-  #reader-dashboard [data-pending-more][hidden] {
-    display: none;
-  }
-
   .reader-article {
     padding: .85rem 0;
     border-bottom: 1px solid var(--border, #666);
@@ -549,13 +303,5 @@ import DashboardTrends from '../components/DashboardTrends.astro';
     line-height: 1.65;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
-  }
-
-  @media (max-width: 600px) {
-    #reader-dashboard .pending-message {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: .75rem;
-    }
   }
 </style>
