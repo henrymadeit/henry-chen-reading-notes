@@ -27,18 +27,24 @@ const related = relatedArticles(article, all);
 </ArticleLayout>
 
 <script>
-  function adjustPortraitImages() {
+  function adjustImageSizes() {
     const images = document.querySelectorAll<HTMLImageElement>(
       '.prose img'
     );
 
     images.forEach((img) => {
       function adjust() {
-        if (img.naturalHeight > img.naturalWidth) {
-          img.classList.add('portrait');
-        } else {
-          img.classList.remove('portrait');
-        }
+        if (!img.naturalWidth || !img.naturalHeight) return;
+
+        const r = img.naturalHeight / img.naturalWidth;
+
+        // 60% 以下不縮小；100% 以上縮小至 62.5%
+        const t = Math.max(0, Math.min(1, (r - 0.6) / 0.4));
+        const scale = 1 - 0.375 * t;
+
+        img.style.setProperty('--image-scale', String(scale));
+        img.classList.add('auto-sized');
+        img.classList.remove('portrait');
       }
 
       if (img.complete && img.naturalWidth > 0) {
@@ -49,11 +55,11 @@ const related = relatedArticles(article, all);
     });
   }
 
-  document.addEventListener('astro:page-load', adjustPortraitImages);
+  document.addEventListener('astro:page-load', adjustImageSizes);
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', adjustPortraitImages);
+    document.addEventListener('DOMContentLoaded', adjustImageSizes);
   } else {
-    adjustPortraitImages();
+    adjustImageSizes();
   }
 </script>

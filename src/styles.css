@@ -372,11 +372,17 @@ nav a[aria-current="page"] { color: var(--text); }
   opacity: 0.8;
 }
 
-/* 直式圖片：縮小至原設定寬度的 5/8 */
-.prose img.portrait {
-  width: 53.125%;
-  max-width: 450px;
+/* 根據圖片高寬比自動縮放 */
+.prose img.auto-sized {
+  width: calc(85% * var(--image-scale, 1));
+  max-width: calc(720px * var(--image-scale, 1));
   height: auto;
-  margin-left: auto;
-  margin-right: auto;
+  margin-inline: auto;
+}
+
+/* 手機維持原本 100% 基準 */
+@media (max-width: 700px) {
+  .prose img.auto-sized {
+    width: calc(100% * var(--image-scale, 1));
+  }
 }
