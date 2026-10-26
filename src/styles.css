@@ -371,3 +371,12 @@ nav a[aria-current="page"] { color: var(--text); }
   color: var(--muted);
   opacity: 0.8;
 }
+
+/* 直式圖片：縮小至原設定寬度的 5/8 */
+.prose img.portrait {
+  width: 53.125%;
+  max-width: 450px;
+  height: auto;
+  margin-left: auto;
+  margin-right: auto;
+}

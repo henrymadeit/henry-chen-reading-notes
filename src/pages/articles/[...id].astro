@@ -25,3 +25,35 @@ const related = relatedArticles(article, all);
   <LikeButton slug={article.id} />
   <Comments slug={article.id} />
 </ArticleLayout>
+
+<script>
+  function adjustPortraitImages() {
+    const images = document.querySelectorAll<HTMLImageElement>(
+      '.prose img'
+    );
+
+    images.forEach((img) => {
+      function adjust() {
+        if (img.naturalHeight > img.naturalWidth) {
+          img.classList.add('portrait');
+        } else {
+          img.classList.remove('portrait');
+        }
+      }
+
+      if (img.complete && img.naturalWidth > 0) {
+        adjust();
+      } else {
+        img.addEventListener('load', adjust, { once: true });
+      }
+    });
+  }
+
+  document.addEventListener('astro:page-load', adjustPortraitImages);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', adjustPortraitImages);
+  } else {
+    adjustPortraitImages();
+  }
+</script>
