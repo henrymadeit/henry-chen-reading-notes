@@ -4,9 +4,10 @@ description: AI晶片間的競爭
 published: 2025-08-31
 category: 行旅與隨想
 tags:  [AI, ASIC, 晶片, Inference]
-//featured: true
+
 message: 一年前的看法。有趣，但不完全正確。
-//pinned: true
+pinned: 0
+featured: 0
 cover: /images/covers/ai-asic.jpg
 coverCaption: GPU與ASIC的差異
 ---

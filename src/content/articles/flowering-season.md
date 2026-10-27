@@ -5,7 +5,7 @@ published: 2026-07-27
 category: 台灣與世界
 bookAuthor: 楊双子【台】
 tags: [台灣文學, 日治台灣, 家族, 小說]
-//featured: true
+featured: 0
 note: -本書由春山出版社出版，請支持本土作者與在地出版事業-
 //readingNumber: 13
 cover: /images/covers/flowering-season.jpg

@@ -5,7 +5,7 @@ published: 2025-04-11
 category: 歷史與文明
 bookAuthor: 戴倫．艾塞默魯【土】和 賽門．強森【美】
 tags: [文明進化, 地中海]
-featured: false
+featured: 0
 draft: true
 //readingNumber: 13
 //takeaway: 諾貝爾光環

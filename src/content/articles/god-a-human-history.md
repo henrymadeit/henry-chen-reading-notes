@@ -5,7 +5,7 @@ published: 2023-08-11
 category: 歷史與文明
 bookAuthor: 雷薩．阿斯蘭【美】
 tags: [宗教, 基督教, 一神教]
-featured: false
+featured: 0
 draft: true
 //takeaway: 
 cover: /images/covers/god-a-human-history.jpg

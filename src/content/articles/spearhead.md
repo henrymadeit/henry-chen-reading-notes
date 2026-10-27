@@ -2,16 +2,18 @@
 title: 裝甲先鋒：美國戰車兵從突出部、科隆到魯爾的作戰經歷
 description: 我們只是想在這個時代活下去
 published: 2025-02-25
-category: 閱讀隨筆
 bookAuthor: 亞當．馬科斯【美】
-tags: [二戰, 戰車, 西線, 德國]
-pinned: true
-//featured: true
-//draft: true
-//readingNumber: 
-//takeaway: 
+tags: [二戰, 戰車, 西線, 德國，美國]
+
 cover: /images/articles/spearhead/spearhead-book-cover.jpg
 coverCaption: 英文版封面
+
+category: 閱讀隨筆
+
+draft: false
+pinned: 2
+featured: 0
+extendedReading: [tiger]
 ---
 
 中文繁體504頁。「 裝甲先鋒」是燎原出版社繼出版奧托．卡留斯回憶錄體的「泥濘中的老虎」後，又一本精采的坦克大戰。對於少年時代癡迷於田宮坦克模型的我，這兩本書都是無法忽略的。
@@ -30,4 +32,3 @@ coverCaption: 英文版封面
 
 ![兩位老人](/images/articles/spearhead/two-old-men.jpg)
 <p class="image-caption">2013年，克拉倫斯．史默爾與古斯塔夫．謝菲爾在科隆重逢。</p>
-

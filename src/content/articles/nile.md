@@ -5,11 +5,12 @@ published: 2026-09-22
 category: 歷史與文明
 bookAuthor: 塔利耶．泰維德【挪】
 tags: [非洲, 埃及, 英國, 肯亞]
-//pinned: true
-message: 去埃及前讀了，從肯亞回來又讀。
-//featured: true
-//readingNumber: 
 //draft: true
+pinned: 0
+featured: 0
+message: 去埃及前讀了，從肯亞回來又讀。
+//readingNumber: 
+
 cover: /images/articles/nile/nile-cover.jpg
 //coverCaption: 繁體中文版封面
 ---

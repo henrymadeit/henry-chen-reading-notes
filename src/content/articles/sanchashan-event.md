@@ -5,7 +5,7 @@ published: 2024-11-20
 category: 閱讀隨筆
 bookAuthor: 甘耀明【台】，朱和之【台】
 tags: [二戰, 中央山脈, 台灣, 日本]
-featured: false
+featured: 0
 draft: true
 //readingNumber: 
 //takeaway: 

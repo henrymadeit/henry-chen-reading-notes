@@ -7,8 +7,8 @@ bookAuthor: 余杰【美】
 tags: [民國, 美國外交, 台灣民主]
 //draft: true
 //note: 哈哈作者會不高興
-//featured: true
-//pinned: true
+featured: 0
+pinned: 0
 cover: /images/articles/made-in-america/cover-chinese.jpg
 coverCaption: 繁體中文版書封面
 ---

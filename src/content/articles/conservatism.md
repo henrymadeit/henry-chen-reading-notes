@@ -2,14 +2,19 @@
 title: 台灣為何需要保守主義? 
 description: 一場台聯辦的演講
 published: 2024-06-29
-category: 台灣與世界
-tags:  [右派, 左派, 保守主義]
-//draft: true
-featured: true
 //message: 豈止如此，台灣恐怕永遠不會有右派
-//pinned: true
+
+tags:  [右派, 左派, 保守主義]
 cover: /images/articles/conservatism/speaker.jpg
 coverCaption: 主講人：蒙古裔美籍作家 余杰
+
+category: 台灣與世界
+//draft: true
+pinned: 0
+featured: 0
+extendedReading: [no-rightwing-in-taiwan]
+
+
 ---
 
 去台北中原街的NOEND藝術中心，聽台聯邀請余杰的「台灣為何需要保守主義？」演講。非常有趣的題目。
@@ -28,6 +33,5 @@ coverCaption: 主講人：蒙古裔美籍作家 余杰
 ## 要怎麼收穫，先那麼栽
 
 余杰對台灣的善意在於他指出這些的盲點。胡適說：「要怎麼收穫，先那麼栽。」個人在生活上面對挑戰做取捨並打拼。國防上認同保家衛國的責任，尋求積極可靠的和平與安全。而非聽天由命，乞求別人的恩賜。最後要捨棄對政府的錯誤期待，明智地投下選票，選出有智慧的領導人，而非雞毛蒜皮的雜貨店老闆，或是溫暖體貼的托兒所老師。
-
 
 

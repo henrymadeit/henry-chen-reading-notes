@@ -2,15 +2,17 @@
 title: 甲骨文：一次占卜當代中國的旅程
 description: 何偉筆下的中國，以及二十年間中國與外部世界關係的變化
 published: 2023-12-11
-category: 歷史與文明
 bookAuthor: 何偉【美】
 tags:  [中國, 何偉, 社會, 考古]
-featured: false
-//draft: true
-//readingNumber: 44
-//takeaway: 後接埃及的革命考古學
+
 cover: /images/covers/oracle-bones-cover.jpg
 coverCaption: 繁體中文版封面
+
+category: 歷史與文明
+draft: false
+pinned: 0
+featured: 0
+extendedReading: [the-buried]
 ---
 
 中文繁體576頁。我讀了「埃及的革命考古學」後，去找作者之前寫的書來讀。這本2006年出版的「甲骨文」是他「中國紀實三部曲」的第二部（第ㄧ部是2001「消失的江城」，第三部是2010「尋路中國」）。本書獲美國國家圖書獎，但在始終未能在中國出版。
@@ -32,3 +34,4 @@ coverCaption: 繁體中文版封面
 <p class="image-caption">何偉與妻子張彤禾及雙胞胎女兒。圖：Michael Anti／China Digital Timei</p>
 
 但是這時的中國已經不一樣。四川大學的學生舉報他「言論侵犯國家主權」。2021年四川大學不與何偉續聘。他被趕出心愛的中國。
+

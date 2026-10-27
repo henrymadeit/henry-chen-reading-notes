@@ -1,16 +1,19 @@
 ---
+draft: true
+pinned: 3
+featured: 0
+category: 歷史與文明
+
 title: 中國極權主義的本土起源
 description: 穿上時髦新衣的文明古國
 published: 2026-10-18
-category: 歷史與文明
 bookAuthor: 余杰【美】
 tags: [郡縣, 極權, 中共, 科舉, 儒學]
-//pinned: true
-draft: true
-//note: 哈哈作者會不高興
-//featured: true
+
 cover: /images/articles/local-origins-of-china/book-cover.jpg
 coverCaption: 繁體中文版書封面
+
+note: -本書由主流出版社出版，請支持愛護台灣的作者與在地出版事業-
 ---
 
 余杰自大光三部曲後的大作。他寫得認真，我讀得辛苦。有收獲也有聯想。

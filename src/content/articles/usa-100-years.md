@@ -3,9 +3,9 @@ title: 美國百年外交大敗局：從一戰到俄羅斯侵略烏克蘭，美�
 description: 從少年茁壯到承擔世界紛爭的挑戰
 published: 2025-03-23
 category: 歷史與文明
-bookAuthor: 余杰
+bookAuthor: 余杰【美】
 tags: [外交, 美國, 霸權, 中國]
-featured: false
+featured: 0
 //readingNumber: 11
 //takeaway: 難道美國變心，不要我們了嗎?
 cover: /images/covers/usa-100-years.jpg

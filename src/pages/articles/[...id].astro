@@ -8,6 +8,7 @@ import { relatedArticles, visibleArticles } from '../../lib/articles';
 
 export async function getStaticPaths() {
   const all = visibleArticles(await getCollection('articles'));
+
   return all.map((article) => ({
     params: { id: article.id },
     props: { article, all }
@@ -16,12 +17,37 @@ export async function getStaticPaths() {
 
 const { article, all } = Astro.props;
 const { Content } = await render(article);
-const related = relatedArticles(article, all);
+
+// 依文章開頭指定的代碼尋找延伸閱讀
+const extendedIds: string[] = article.data.extendedReading ?? [];
+
+const extendedArticles = extendedIds
+  .map((id) => all.find((item) => item.id === id))
+  .filter((item) => item !== undefined);
+
+// 從所有相關候選文章中排除延伸閱讀，再選前四篇
+const related = relatedArticles(article, all, all.length)
+  .filter((item) => !extendedIds.includes(item.id))
+  .slice(0, 4);
 ---
 
 <ArticleLayout article={article} related={related}>
   <ReaderTracking slug={article.id} />
+
   <Content />
+
+  {extendedArticles.length > 0 && (
+    <p>
+      延伸閱讀：
+      {extendedArticles.map((item, index) => (
+        <>
+          {index > 0 && '、'}
+          <a href={`/articles/${item.id}/`}>〈{item.data.title}〉</a>
+        </>
+      ))}
+    </p>
+  )}
+
   <LikeButton slug={article.id} />
   <Comments slug={article.id} />
 </ArticleLayout>

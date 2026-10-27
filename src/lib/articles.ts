@@ -14,9 +14,22 @@ export const categoryPaths: Record<(typeof categories)[number], string> = {
 };
 
 export function sortArticles(items: Article[]) {
-  return [...items].sort(
-    (a, b) => b.data.published.valueOf() - a.data.published.valueOf()
-  );
+
+  return [...items].sort((a, b) => {
+
+    const pinA = a.data.pinned ?? 0;
+    const pinB = b.data.pinned ?? 0;
+
+    // Pinned 數字越大，排序越前面
+    if (pinA !== pinB) {
+      return pinB - pinA;
+    }
+
+    // Pinned 相同時，依發表日期排序（新到舊）
+    return b.data.published.valueOf() - a.data.published.valueOf();
+
+  });
+
 }
 
 export function visibleArticles(items: Article[]) {

@@ -6,8 +6,13 @@ import RecentComments from '../components/RecentComments.astro';
 import { visibleArticles, categories, categoryPaths } from '../lib/articles';
 
 const articles = visibleArticles(await getCollection('articles'));
-
-const featured = articles.filter((a) => a.data.featured).slice(0, 4);
+const featured = articles
+  .filter((a) => a.data.featured > 0)
+  .sort((a, b) =>
+    b.data.featured - a.data.featured ||
+    b.data.published.valueOf() - a.data.published.valueOf()
+  )
+  .slice(0, 4);
 const pinned = articles.filter((a) => a.data.pinned).slice(0, 2);
 const latest = articles.slice(0, 6);
 
@@ -20,8 +25,8 @@ const categoryDescriptions = {
 };
 
 // 在下方加上宣傳字語，不加就在引號間留空白
-const promotion = '新增 歷史與文明 【近代日本三部曲】';
-const promotion2 = '新增 行旅與隨想【VIBE CODING - 有趣, 也比想像容易】';
+const promotion = '新增 閱讀隨筆【裝甲先鋒：美國戰車兵從突出部、科隆到魯爾的作戰經歷】';
+const promotion2 = '新增 歷史與文明 【近代日本三部曲】';
 
 ---
 

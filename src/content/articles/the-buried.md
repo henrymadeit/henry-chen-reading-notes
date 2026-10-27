@@ -1,16 +1,24 @@
 ---
+
+
 title: 埃及的革命考古學
 description: 從中國到埃及，何偉見到被埋葬的歷史，觀察一個社會尋找方向
 published: 2023-11-19
-category: 歷史與文明
+
 bookAuthor: 何偉【美】
 tags:  [埃及, 何偉, 阿拉伯之春, 國家認同]
-featured: false
-draft: true
-//readingNumber: 41
-//takeaway: 從中國到埃及，何偉繼續觀察一個社會如何尋找自己的方向。
+
 cover: /images/covers/the-buried.png
 coverCaption: 繁體中文版封面
+
+//note: -本書由主流出版社出版，請支持愛護台灣的作者與在地出版事業-
+
+category: 歷史與文明
+draft: false
+pinned: 0
+featured: 0
+extendedReading: [oracle-bones]
+
 ---
 
 ## 革命的考古
@@ -30,4 +38,3 @@ coverCaption: 繁體中文版封面
 ## 困境
 
 我逐漸理解，埃及無法掙脫外來包袱，因此價值觀與自覺的建立十分緩慢。沙達特曾嘗試走自己的路卻遭反噬。穆巴拉克被穆希爾取代，穆希爾被塞特趕下，然而我們感覺不出差異，因為他們也弄不清埃及該去哪裡。現今哈以戰爭時，儘管埃及政府冷靜謹慎自持，我在埃及旅遊時的導遊卻堅持哈瑪斯是正義。恐怕許多埃及人的尺規仍是伊斯蘭大義，不是埃及國家利益。
-

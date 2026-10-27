@@ -4,8 +4,8 @@ description: 從港口、季風與交換，理解海洋網絡如何連接文明
 published: 2026-07-06
 category: 歷史與文明
 bookAuthor: 大衛．阿布拉菲雅【英】
-tags: [海洋文明, 世界史, 貿易, 帝國]
-//featured: true
+tags: [海洋文明, 世界史, 貿易, 節點]
+featured: 0
 //readingNumber: 10
 //takeaway: 除了地中海以外的海洋
 cover: /images/covers/boundless-sea.jpg

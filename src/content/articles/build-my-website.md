@@ -2,11 +2,13 @@
 title: VIBE CODING
 description: 用AI寫程式有趣，也比想像更容易
 published: 2026-10-10
+//message: 豈止如此，台灣恐怕永遠不會有右派
 category: 行旅與隨想
 tags:  [科技, AI, 懷舊]
-featured: true
-//message: 豈止如此，台灣恐怕永遠不會有右派
-//pinned: true
+
+pinned: 0
+featured: 4
+
 cover: /images/covers/my-website.jpg
 coverCaption: My website, built with VS-Code 
 ---

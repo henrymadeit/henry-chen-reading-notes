@@ -5,8 +5,8 @@ published: 2025-05-20
 category: 行旅與隨想
 //draft: true
 tags: [非洲, 攝影團, 沙漠, 動物]
-//pinned: true
-featured: true
+pinned: 0
+featured: 3
 cover: /images/articles/trip-to-namibia/namibia-itinerary.jpg
 ---
 

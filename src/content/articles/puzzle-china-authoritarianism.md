@@ -5,7 +5,7 @@ published: 2026-07-11
 category: 歷史與文明
 bookAuthor: 黎安友【美】
 tags: [中國, 極權]
-featured: false
+featured: 0
 //readingNumber: 11
 //takeaway: 余杰說是極權不是威權
 cover: /images/covers/puzzle-of-chinese-authoritarianism.jpg

@@ -2,15 +2,18 @@
 title: 泥濘中的老虎：德國戰車指揮官的戰爭回憶
 description: 讓我們做好該做的事
 published: 2022-02-01
-category: 閱讀隨筆
+
 bookAuthor: 奧托．卡留斯【德】
-tags: [二戰, 戰車, 東線, 德國]
-featured: false
-//draft: true
-//readingNumber: 
-//takeaway: 
+tags: [二戰, 戰車, 東線, 德國, 蘇聯]
+featured: 0
+
 cover: /images/articles/tiger/tiger-cover.jpg
 coverCaption: 繁體中文版封面
+
+category: 閱讀隨筆
+//draft: true
+//readingNumber:
+extendedReading: [spearhead]
 ---
 
 虎年讀二次大戰虎式戰車王牌奧托．卡留斯的回憶錄。繁體中文432頁。十分精彩。
