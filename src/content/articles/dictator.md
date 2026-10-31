@@ -1,15 +1,19 @@
 ---
-title: 獨裁者
+title: 獨裁者：Dictator
 description: 從天真年少到冷酷精明，不變的是對理念的堅持
 published: 2025-07-17
-category: 閱讀隨筆
 bookAuthor: 羅伯特·哈里斯【英】
 tags: [前歐洲, 西塞羅, 凱撒]
-featured: 0
-//readingNumber: 23
-//takeaway: 讓我們清清嗓子，開始演講
+
 cover: /images/covers/dictator.jpg
 coverCaption: 英文版封面
+
+note: 【 西塞羅三部曲之三 】
+category: 閱讀隨筆
+draft: false
+pinned: 0
+featured: 0
+extendedReading: [imperium]
 ---
 
 簡中378頁電子版。好看的歷史小說，說西塞羅最後15年的故事。

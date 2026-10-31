@@ -2,13 +2,15 @@
 title: 東非遊獵：肯亞，辛巴威，波茲瓦那與尚比亞
 description: 2026年的大旅行 [0813-0826]
 published: 2026-09-04
-category: 行旅與隨想
 tags: [非洲, 肯亞, 辛巴威, 馬賽馬拉, 維多利亞瀑布, Safari]
 
+cover: /images/articles/east-africa-safari/east-africa-safaris-map.png
+
+category: 行旅與隨想
 pinned: 0
 featured: 7
 
-cover: /images/articles/east-africa-safari/east-africa-safaris-map.png
+extendedReading: [trip-to-namibia]
 ---
 
 ## 關於遊獵 Safari

@@ -7,7 +7,7 @@ category: 台灣與世界
 tags: [台灣, 產業, 科技, 文化]
 
 pinned: 0
-featured: 8
+featured: 0
 //readingNumber: 10
 //takeaway: 
 

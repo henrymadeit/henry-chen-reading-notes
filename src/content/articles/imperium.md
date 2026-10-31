@@ -2,16 +2,18 @@
 title: 最高權力：Imperium
 description: 讓我們清清嗓子，開始演講
 published: 2025-09-07
-category: 閱讀隨筆
 bookAuthor: 羅伯特·哈里斯【英】
 tags: [前歐洲, 西塞羅, 凱撒]
-pinned: 0
-featured: 0
-draft: true
-//readingNumber: 23
-//takeaway: 讓我們清清嗓子，開始演講
+
 cover: /images/articles/imperium/imperium-cover.jpg
 coverCaption: 英文版封面
+
+note: 【 西塞羅三部曲之一 】
+category: 閱讀隨筆
+draft: true
+pinned: 0
+featured: 0
+extendedReading: [lustrum]
 ---
 
 七月時讀了羅伯特哈里斯「西塞羅三部曲」小說的第三冊「獨裁者」，甚喜。我找不著前兩冊的中文版，在KOBO看到英文的「The Cicero Trilogy」，三本一次購買只要8.99USD。好看又經濟。

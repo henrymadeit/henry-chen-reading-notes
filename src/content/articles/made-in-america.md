@@ -2,15 +2,18 @@
 title: 從「養共為患」一書談起
 description: 不同的看法與意外的聯想
 published: 2026-08-28
-category: 台灣與世界
 bookAuthor: 余杰【美】
 tags: [民國, 美國外交, 台灣民主]
-//draft: true
-//note: 哈哈作者會不高興
-featured: 0
-pinned: 0
 cover: /images/articles/made-in-america/cover-chinese.jpg
 coverCaption: 繁體中文版書封面
+
+category: 台灣與世界
+
+//draft: true
+featured: 0
+pinned: 0
+extendedReading: [usa-100-years]
+
 ---
 
 余杰的「養共為患」敘述美中關係，從歷史到當代。沿著本書的脈絡，我卻有了一些意外的聯想。

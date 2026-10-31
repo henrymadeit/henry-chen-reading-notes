@@ -2,12 +2,17 @@
 title: 納米比亞之旅
 description: 2025年的大旅行 [0422-0508]
 published: 2025-05-20
-category: 行旅與隨想
-//draft: true
 tags: [非洲, 攝影團, 沙漠, 動物]
+
+category: 行旅與隨想
+
+//draft: true
 pinned: 0
 featured: 3
 cover: /images/articles/trip-to-namibia/namibia-itinerary.jpg
+
+extendedReading: [east-africa-safari]
+
 ---
 
 ## 沒聽過的遠地

@@ -5,8 +5,8 @@ published: 2026-10-013
 category: 歷史與文明
 bookAuthor: 馬國川
 tags: [日本, 明治, 大正, 昭和, 二戰]
-pinned: 1
-featured: 0
+pinned: 0
+featured: 8
 //readingNumber: 10
 //takeaway: 除了地中海以外的海洋
 cover: /images/articles/japan-trilogy/book-cover.jpg

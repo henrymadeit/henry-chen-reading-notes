@@ -2,16 +2,18 @@
 title: 五年期：Lustrum
 description: 制度維護者與改革行動派的對立
 published: 2025-10-13
-//category: 歷史與文明
-category: 閱讀隨筆
 bookAuthor: 羅伯特·哈里斯【英】
 tags: [前歐洲, 西塞羅, 凱撒]
-featured: 0
-draft: true
-//readingNumber: 23
-//takeaway: 讓我們清清嗓子，開始演講
+
 cover: /images/articles/lustrum/lustrum-cover.jpg
 coverCaption: 英文版封面
+
+note: 【 西塞羅三部曲之二 】
+category: 閱讀隨筆
+draft: true
+pinned: 0
+featured: 0
+extendedReading: [dictator]
 ---
 
 「Lustrum」是羅伯特哈里斯小說「西塞羅三部曲」的第二冊。 這字是拉丁文，意爲五年一次的政治與宗教的淨化祭。這裡指的是西元前63年到前58年：西塞羅擔任羅馬執政官，意氣風發，最後卻被整肅，逃離羅馬流亡，驚風密語，大起大落的動盪五年。
