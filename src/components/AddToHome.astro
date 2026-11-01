@@ -1,0 +1,127 @@
+<div class="add-home">
+  <button type="button" id="add-home-btn" aria-haspopup="dialog" aria-controls="add-home-dialog">
+    <img src="/icons/icon-192.png" width="28" height="28" alt="" />
+    <span>&lt;&lt; 或是將本站加入您的桌面</span>
+  </button>
+</div>
+
+<dialog id="add-home-dialog" aria-labelledby="add-home-title">
+  <div class="add-home-panel">
+    <button type="button" id="add-home-close" class="add-home-close" aria-label="關閉">×</button>
+    <h2 id="add-home-title">將「Henry Chen 的隨筆」加入桌面</h2>
+    <p id="add-home-instruction"></p>
+    <button type="button" id="add-home-ok">知道了</button>
+  </div>
+</dialog>
+
+<script>
+  interface InstallPromptEvent extends Event {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: string }>;
+  }
+  let installPrompt: InstallPromptEvent | null = null;
+  window.addEventListener('beforeinstallprompt', (event: Event) => {
+    event.preventDefault();
+    installPrompt = event as InstallPromptEvent;
+  });
+
+  const btn = document.getElementById('add-home-btn');
+  const dialog = document.getElementById('add-home-dialog') as HTMLDialogElement | null;
+  const instruction = document.getElementById('add-home-instruction');
+  const closeDialog = () => dialog?.close();
+
+  btn?.addEventListener('click', async () => {
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      if (instruction) instruction.textContent = '你目前已經使用桌面版開啟網站。';
+      dialog?.showModal();
+      return;
+    }
+
+    if (installPrompt) {
+      const event = installPrompt;
+      installPrompt = null;
+      await event.prompt();
+      return;
+    }
+
+    const ua = navigator.userAgent;
+    let message: string;
+    if (/iPhone|iPad|iPod/i.test(ua)) {
+      message = '請使用 Safari 開啟本站，點選分享按鈕，再選擇「加入主畫面」。';
+    } else if (/Android/i.test(ua)) {
+      message = '請在 Chrome 右上角點選 ⋮，再選擇「加到主畫面」或「安裝應用程式」。';
+    } else if (/Macintosh|Mac OS X/i.test(ua)) {
+      message = 'Safari 可從「檔案」選單選擇「加入 Dock」；其他瀏覽器可使用建立捷徑或安裝網站功能。';
+    } else {
+      message = '在 Chrome 右上角點選 ⋮ →「投放、儲存及分享」→「建立捷徑」，或點選網址列的「安裝」按鈕（若有顯示）。';
+    }
+    if (instruction) instruction.textContent = message;
+    dialog?.showModal();
+  });
+
+  document.getElementById('add-home-close')?.addEventListener('click', closeDialog);
+  document.getElementById('add-home-ok')?.addEventListener('click', closeDialog);
+  dialog?.addEventListener('click', (event) => {
+    if (event.target === dialog) closeDialog();
+  });
+</script>
+
+<style>
+  .add-home {
+    display: flex;
+    align-items: center;
+    margin: 0.4rem 0 1.1rem;
+  }
+  #add-home-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    text-align: left;
+    cursor: pointer;
+  }
+  #add-home-btn:hover span,
+  #add-home-btn:focus-visible span { text-decoration: underline; }
+  #add-home-btn img {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex: none;
+  }
+  #add-home-dialog {
+    width: min(90vw, 430px);
+    border: 1px solid #777;
+    border-radius: 12px;
+    padding: 0;
+    background: #202322;
+    color: #f4f0e7;
+  }
+  #add-home-dialog::backdrop { background: rgba(0,0,0,0.65); }
+  .add-home-panel { position: relative; padding: 1.75rem; line-height: 1.8; }
+  .add-home-panel h2 { font-size: 1.2rem; margin: 0 1.5rem 1rem 0; }
+  .add-home-close {
+    position: absolute; top: 0.65rem; right: 0.85rem;
+    border: none; background: transparent; color: inherit;
+    font-size: 1.6rem; cursor: pointer;
+  }
+  #add-home-ok {
+    display: block; margin: 1.5rem 0 0 auto;
+    padding: 0.45rem 1.25rem;
+    border: 1px solid #bca477;
+    border-radius: 6px;
+    background: #c5a66d;
+    color: #171717;
+    cursor: pointer;
+  }
+  @media (max-width: 700px) {
+    #add-home-btn { font-size: 0.84rem; }
+    #add-home-btn img { width: 26px; height: 26px; }
+  }
+</style>

@@ -4,6 +4,7 @@ import ArticleLayout from '../../layouts/ArticleLayout.astro';
 import LikeButton from '../../components/LikeButton.astro';
 import Comments from '../../components/Comments.astro';
 import ReaderTracking from '../../components/ReaderTracking.astro';
+import AddToHome from '../../components/AddToHome.astro';
 import { relatedArticles, visibleArticles } from '../../lib/articles';
 
 export async function getStaticPaths() {
@@ -49,6 +50,7 @@ const related = relatedArticles(article, all, all.length)
   )}
 
   <LikeButton slug={article.id} />
+  <AddToHome />
   <Comments slug={article.id} />
 </ArticleLayout>
 

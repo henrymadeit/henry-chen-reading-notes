@@ -1,0 +1,59 @@
+<section class="dashboard-installs" aria-labelledby="install-stats-title">
+  <h2 id="install-stats-title">桌面捷徑統計</h2>
+  <p class="admin-note">從啟用追蹤後才開始統計。「確認安裝」只計入瀏覽器回報的安裝事件，並非全部實際安裝數；點擊也不等於安裝。</p>
+  <div class="install-summary">
+    <p><span>點擊加入桌面</span><strong data-install-clicks>—</strong></p>
+    <p><span>瀏覽器確認安裝</span><strong data-install-complete>—</strong></p>
+    <p><span>最近一次點擊</span><strong data-install-recent>—</strong></p>
+  </div>
+  <details>
+    <summary>來源文章（點擊前十名）</summary>
+    <ol data-install-sources><li>載入中……</li></ol>
+  </details>
+  <p role="status" data-install-status></p>
+</section>
+
+<script>
+  import { adminFetch, localTime } from '../lib/admin';
+  const panel = document.querySelector<HTMLElement>('.dashboard-installs');
+  const root = document.querySelector<HTMLElement>('#reader-dashboard');
+  if (panel && root) {
+    const titles: Record<string, string> = JSON.parse(root.dataset.titles || '{}');
+    void (async () => {
+      try {
+        const data = await adminFetch('/api/admin-install-stats') as {
+          totals: { clicks: number; installed: number; last_click: string | null };
+          sources: Array<{ slug: string; clicks: number }>;
+        };
+        panel.querySelector<HTMLElement>('[data-install-clicks]')!.textContent = String(data.totals.clicks);
+        panel.querySelector<HTMLElement>('[data-install-complete]')!.textContent = String(data.totals.installed);
+        panel.querySelector<HTMLElement>('[data-install-recent]')!.textContent =
+          data.totals.last_click ? localTime(data.totals.last_click) : '尚無紀錄';
+        const list = panel.querySelector<HTMLElement>('[data-install-sources]')!;
+        list.replaceChildren();
+        if (!data.sources.length) {
+          const li = document.createElement('li');
+          li.textContent = '尚無點擊紀錄';
+          list.append(li);
+        }
+        for (const source of data.sources) {
+          const li = document.createElement('li');
+          li.textContent = `${titles[source.slug] || source.slug}：${source.clicks} 次`;
+          list.append(li);
+        }
+      } catch (error) {
+        panel.querySelector<HTMLElement>('[data-install-status]')!.textContent =
+          error instanceof Error ? error.message : '無法載入統計';
+      }
+    })();
+  }
+</script>
+
+<style>
+  .dashboard-installs { margin: 1.5rem 0 2rem; }
+  .install-summary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .8rem; }
+  .install-summary p { display: flex; flex-direction: column; gap: .35rem; margin: 0; padding: .85rem; border: 1px solid var(--border,#777); border-radius: 8px; }
+  .install-summary strong { font-size: 1.1rem; overflow-wrap: anywhere; }
+  .dashboard-installs details { margin-top: 1rem; }
+  @media(max-width:700px) { .install-summary { grid-template-columns: 1fr; } }
+</style>

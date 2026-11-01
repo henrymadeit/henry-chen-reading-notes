@@ -3,6 +3,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 import { getCollection } from 'astro:content';
 import { visibleArticles } from '../lib/articles';
 import DashboardTrends from '../components/DashboardTrends.astro';
+import DashboardInstalls from '../components/DashboardInstalls.astro';
 
 const titles = Object.fromEntries(
   visibleArticles(await getCollection('articles')).map(
@@ -13,6 +14,7 @@ const titles = Object.fromEntries(
 
 <AdminLayout title="Dashboard">
   <div id="reader-dashboard" data-titles={JSON.stringify(titles)}>
+    <DashboardInstalls />
     <DashboardTrends />
 
     <p class="admin-note">
