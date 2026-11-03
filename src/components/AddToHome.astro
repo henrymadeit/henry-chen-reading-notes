@@ -47,7 +47,8 @@
     const ua = navigator.userAgent;
     let message: string;
         if (/iPhone|iPad|iPod/i.test(ua)) {
-      message = '點選瀏覽器右上角，上箭頭的「分享」圖示，再選擇「加入主畫面」選項。 ';
+      message = '點選瀏覽器右上角，箭頭向上的「分享」圖示，再選擇「加入主畫面」。 ';
+      
     } 
  
     else if (/Android/i.test(ua)) {
@@ -73,6 +74,8 @@
     display: flex;
     align-items: center;
     margin: 0.4rem 0 1.1rem;
+    opacity: 0.7;
+    font-weight: 400;
   }
   #add-home-btn {
     display: inline-flex;
@@ -83,7 +86,6 @@
     background: none;
     color: inherit;
     font: inherit;
-    font-size: 0.95rem;
     line-height: 1.5;
     text-align: left;
     cursor: pointer;
@@ -123,7 +125,6 @@
     cursor: pointer;
   }
   @media (max-width: 700px) {
-    #add-home-btn { font-size: 0.84rem; }
     #add-home-btn img { width: 26px; height: 26px; }
   }
 </style>
