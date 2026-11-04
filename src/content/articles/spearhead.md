@@ -11,8 +11,8 @@ coverCaption: 英文版封面
 category: 閱讀隨筆
 
 draft: false
-pinned: 2
-featured: 0
+//pinned: 2
+featured: 12
 extendedReading: [tiger]
 ---
 

@@ -47,16 +47,16 @@
     const ua = navigator.userAgent;
     let message: string;
         if (/iPhone|iPad|iPod/i.test(ua)) {
-      message = '點選瀏覽器右上角，箭頭向上的「分享」圖示，再選擇「加入主畫面」。 ';
+      message = '在 Chrome 右上角點選 <箭頭向上的分享圖示>，再選擇「加入主畫面」。 ';
       
     } 
  
     else if (/Android/i.test(ua)) {
-      message = '請在 Chrome 右上角點選 ⋮，再選擇「加到主畫面」或「安裝應用程式」。';
+      message = '在 Chrome 右上角點選 ⋮，再選擇「安裝並建立捷徑」。';
     } else if (/Macintosh|Mac OS X/i.test(ua)) {
       message = 'Safari 可從「檔案」選單選擇「加入 Dock」；其他瀏覽器可使用建立捷徑或安裝網站功能。';
     } else {
-      message = '在 Chrome 右上角點選 ⋮ →「投放、儲存及分享」→「建立捷徑」，或點選網址列的「安裝」按鈕（若有顯示）。';
+      message = '在 Chrome 右上角點選 ⋮ →「投放、儲存及分享」→點選網址列的「安裝」按鈕。';
     }
     if (instruction) instruction.textContent = message;
     dialog?.showModal();
