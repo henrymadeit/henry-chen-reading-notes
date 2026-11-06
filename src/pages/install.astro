@@ -1,0 +1,151 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Henry Chen 的隨筆"
+  description="閱讀，旅行，聯想。加入您的桌面，方便下次閱讀。"
+  shareImage="/icons/icon-512.png"
+>
+  <section class="wrap install-page">
+    <img class="install-icon" src="/icons/icon-512.png" width="128" height="128" alt="Henry Chen 的隨筆圖示" />
+    <p class="install-eyebrow">閱讀，旅行，聯想。</p>
+    <h1>Henry Chen 的隨筆</h1>
+    <p class="install-copy">加入您的桌面，方便下次閱讀。</p>
+    <button type="button" id="install-add-btn" aria-haspopup="dialog" aria-controls="install-add-dialog">［加入您的桌面］</button>
+    <a class="install-visit" href="/">先逛逛網站</a>
+  </section>
+
+  <dialog id="install-add-dialog" aria-labelledby="install-add-title">
+    <div class="install-add-panel">
+      <button type="button" id="install-add-close" class="install-add-close" aria-label="關閉">×</button>
+      <h2 id="install-add-title">將「Henry Chen 的隨筆」加入桌面</h2>
+      <p id="install-add-instruction"></p>
+      <button type="button" id="install-add-ok">知道了</button>
+    </div>
+  </dialog>
+</BaseLayout>
+
+<script>
+  interface InstallPromptEvent extends Event {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: string }>;
+  }
+  let installPrompt: InstallPromptEvent | null = null;
+  window.addEventListener('beforeinstallprompt', (event: Event) => {
+    event.preventDefault();
+    installPrompt = event as InstallPromptEvent;
+  });
+
+  const btn = document.getElementById('install-add-btn');
+  const dialog = document.getElementById('install-add-dialog') as HTMLDialogElement | null;
+  const instruction = document.getElementById('install-add-instruction');
+  const closeDialog = () => dialog?.close();
+  const showMessage = (message: string) => {
+    if (instruction) instruction.textContent = message;
+    if (dialog && !dialog.open) dialog.showModal();
+  };
+
+  btn?.addEventListener('click', async () => {
+    const iosStandalone = (navigator as Navigator & { standalone?: boolean }).standalone;
+    if (window.matchMedia('(display-mode: standalone)').matches || iosStandalone) {
+      showMessage('你目前已經使用桌面版開啟網站。');
+      return;
+    }
+
+    if (installPrompt) {
+      const event = installPrompt;
+      installPrompt = null;
+      try {
+        await event.prompt();
+        await event.userChoice;
+        return;
+      } catch {
+        // 若瀏覽器未能開啟安裝提示，改顯示操作說明。
+      }
+    }
+
+    const ua = navigator.userAgent;
+    if (/Line\//i.test(ua)) {
+      showMessage('先從目前 App 右下角的「⋮」中找到「在瀏覽器中開啟」。然後點選右上角「有向上箭頭的方框」圖示，再選擇「加入主畫面」。');
+    } else if (/FBAN|FBAV/i.test(ua)) {
+      showMessage('先從目前 App 右上角的「⋯」中找到「使用外部瀏覽器開啟」。然後點選右上角「有向上箭頭的方框」圖示，再選擇「加入主畫面」。');
+    } else if (/Instagram/i.test(ua)) {
+      showMessage('請先從目前 App 的選單選擇使用外部瀏覽器開啟，再將本站加入主畫面或安裝。');
+    } else if (/iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+      showMessage('點選右上角「有向上箭頭的方框」圖示，再選擇「加入主畫面」。');
+    } else if (/Android/i.test(ua)) {
+      showMessage('請開啟瀏覽器選單，尋找「安裝應用程式」或「加入主畫面」等選項；名稱會依瀏覽器而異。');
+    } else if (/Macintosh|Mac OS X/i.test(ua)) {
+      showMessage('Safari 可從「檔案」選單選擇「加入 Dock」；其他瀏覽器請尋找安裝網站或建立捷徑功能。');
+    } else {
+      showMessage('請查看瀏覽器網址列或選單中的「安裝」或「將此網站安裝為應用程式」等選項。');
+    }
+  });
+
+  document.getElementById('install-add-close')?.addEventListener('click', closeDialog);
+  document.getElementById('install-add-ok')?.addEventListener('click', closeDialog);
+  dialog?.addEventListener('click', (event) => {
+    if (event.target === dialog) closeDialog();
+  });
+</script>
+
+<style>
+  .install-page {
+    min-height: 65vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding-block: 3.5rem;
+  }
+  .install-icon {
+    width: 128px;
+    height: 128px;
+    border-radius: 24px;
+    object-fit: contain;
+    margin-bottom: 1.5rem;
+  }
+  .install-eyebrow { margin: 0 0 0.75rem; color: var(--muted); }
+  .install-page h1 { margin: 0; font-size: clamp(1.65rem, 5vw, 2.7rem); line-height: 1.35; }
+  .install-copy { margin: 1rem 0 1.75rem; color: var(--muted); }
+  #install-add-btn {
+    appearance: none;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding: 0.6rem 0.3rem;
+    color: var(--accent);
+    font: inherit;
+    cursor: pointer;
+  }
+  #install-add-btn:hover, #install-add-btn:focus-visible { text-decoration: underline; }
+  .install-visit { margin-top: 1rem; font-size: 0.9rem; color: var(--muted); }
+  #install-add-dialog {
+    width: min(90vw, 430px);
+    border: 1px solid #777;
+    border-radius: 12px;
+    padding: 0;
+    background: #202322;
+    color: #f4f0e7;
+  }
+  #install-add-dialog::backdrop { background: rgba(0,0,0,0.65); }
+  .install-add-panel { position: relative; padding: 1.75rem; line-height: 1.8; }
+  .install-add-panel h2 { font-size: 1.2rem; margin: 0 1.5rem 1rem 0; }
+  .install-add-close {
+    position: absolute; top: 0.65rem; right: 0.85rem;
+    border: none; background: transparent; color: inherit;
+    font-size: 1.6rem; cursor: pointer;
+  }
+  #install-add-ok {
+    display: block; margin: 1.5rem 0 0 auto;
+    padding: 0.45rem 1.25rem;
+    border: 1px solid #bca477;
+    border-radius: 6px;
+    background: #c5a66d;
+    color: #171717;
+    cursor: pointer;
+  }
+
+</style>

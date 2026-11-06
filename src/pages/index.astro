@@ -29,9 +29,6 @@ const promotion2 = '新增【歷史與文明】中國集權主義的本土起源
 ---
 
 <BaseLayout>
-  <!-- =========================
-       HOME HERO
-       ========================= -->
   <section class="hero wrap home-hero">
     <p class="eyebrow">閱讀，旅行，聯想。</p>
     <h1>Henry Chen 的隨筆</h1>
@@ -39,9 +36,6 @@ const promotion2 = '新增【歷史與文明】中國集權主義的本土起源
       閱讀讓我看見世界，旅行讓我體會世界，寫作助我整理思緒。
     </p>
 
-    <!-- =========================
-         PROMOTION
-         ========================= -->
     {promotion && (
       <div class="hero-promotion">
         <p>{promotion}</p>
@@ -49,39 +43,23 @@ const promotion2 = '新增【歷史與文明】中國集權主義的本土起源
       </div>
     )}
 
-    <!-- =========================
-         RECENT COMMENTS + EMAIL
-         ========================= -->
     <div class="hero-bottom">
-      <p class="hero-contact">
-        歡迎交流：
-        <a href="mailto:henryreads.pages@gmail.com">
-          henryreads.pages@gmail.com
-        </a>
+      <p class="hero-contact hero-contact-row">
+        <button type="button" id="home-add-btn" aria-haspopup="dialog" aria-controls="home-add-dialog">［加入您的桌面］</button>
+        <span class="hero-email">｜ 歡迎交流：<a href="mailto:henryreads.pages@gmail.com">henryreads.pages@gmail.com</a></span>
       </p>
       <RecentComments
         titles={Object.fromEntries(
-          articles.map((article) => [
-            article.id,
-            article.data.title
-          ])
+          articles.map((article) => [article.id, article.data.title])
         )}
       />
     </div>
   </section>
 
-  <!-- =========================
-       HERO PHOTO CAPTION
-       ========================= -->
   <div class="wrap">
-    <p class="home-photo-credit">
-      丘比河，波茲瓦納 - Aug 2026
-    </p>
+    <p class="home-photo-credit">丘比河，波茲瓦納 - Aug 2026</p>
   </div>
 
-  <!-- =========================
-       LATEST ARTICLES
-       ========================= -->
   {pinned.length > 0 && (
     <section class="wrap latest-section">
       <h2 class="latest-heading">最新文章</h2>
@@ -93,14 +71,9 @@ const promotion2 = '新增【歷史與文明】中國集權主義的本土起源
     </section>
   )}
 
-  <!-- =========================
-       FEATURED ARTICLES
-       ========================= -->
   {featured.length > 0 && (
     <section class="wrap section">
-      <div class="section-heading">
-        <h2>精選文章</h2>
-      </div>
+      <div class="section-heading"><h2>精選文章</h2></div>
       <div class="card-grid featured-grid">
         {featured.map((article) => (
           <ArticleCard article={article} showLikes={true} />
@@ -109,9 +82,6 @@ const promotion2 = '新增【歷史與文明】中國集權主義的本土起源
     </section>
   )}
 
-  <!-- =========================
-       CATEGORY OVERVIEW
-       ========================= -->
   <section class="wrap overview-section">
     <h2 class="overview-heading">分類總覽</h2>
     <div class="topic-grid" aria-label="主題">
@@ -123,27 +93,85 @@ const promotion2 = '新增【歷史與文明】中國集權主義的本土起源
       ))}
     </div>
   </section>
+
+  <dialog id="home-add-dialog" aria-labelledby="home-add-title">
+    <div class="home-add-panel">
+      <button type="button" id="home-add-close" class="home-add-close" aria-label="關閉">×</button>
+      <h2 id="home-add-title">將「Henry Chen 的隨筆」加入桌面</h2>
+      <p id="home-add-instruction"></p>
+      <button type="button" id="home-add-ok">知道了</button>
+    </div>
+  </dialog>
 </BaseLayout>
 
+<script>
+  interface InstallPromptEvent extends Event {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: string }>;
+  }
+  let installPrompt: InstallPromptEvent | null = null;
+  window.addEventListener('beforeinstallprompt', (event: Event) => {
+    event.preventDefault();
+    installPrompt = event as InstallPromptEvent;
+  });
+
+  const btn = document.getElementById('home-add-btn');
+  const dialog = document.getElementById('home-add-dialog') as HTMLDialogElement | null;
+  const instruction = document.getElementById('home-add-instruction');
+  const closeDialog = () => dialog?.close();
+  const showMessage = (message: string) => {
+    if (instruction) instruction.textContent = message;
+    if (dialog && !dialog.open) dialog.showModal();
+  };
+
+  btn?.addEventListener('click', async () => {
+    const iosStandalone = (navigator as Navigator & { standalone?: boolean }).standalone;
+    if (window.matchMedia('(display-mode: standalone)').matches || iosStandalone) {
+      showMessage('你目前已經使用桌面版開啟網站。');
+      return;
+    }
+
+    if (installPrompt) {
+      const event = installPrompt;
+      installPrompt = null;
+      try {
+        await event.prompt();
+        await event.userChoice;
+        return;
+      } catch {
+        // 若瀏覽器未能開啟安裝提示，改顯示操作說明。
+      }
+    }
+
+    const ua = navigator.userAgent;
+    if (/FBAN|FBAV|Instagram|Line\//i.test(ua)) {
+      showMessage('請先從目前 App 的選單選擇使用外部瀏覽器開啟，再將本站加入主畫面或安裝。');
+    } else if (/iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+      showMessage('請在瀏覽器的分享選單中選擇「加入主畫面」。若找不到此選項，請改用 Safari 開啟本站後再操作。');
+    } else if (/Android/i.test(ua)) {
+      showMessage('請開啟瀏覽器選單，尋找「安裝應用程式」或「加入主畫面」等選項；名稱會依瀏覽器而異。');
+    } else if (/Macintosh|Mac OS X/i.test(ua)) {
+      showMessage('Safari 可從「檔案」選單選擇「加入 Dock」；其他瀏覽器請尋找安裝網站或建立捷徑功能。');
+    } else {
+      showMessage('請查看瀏覽器網址列或選單中的「安裝」或「將此網站安裝為應用程式」等選項。');
+    }
+  });
+
+  document.getElementById('home-add-close')?.addEventListener('click', closeDialog);
+  document.getElementById('home-add-ok')?.addEventListener('click', closeDialog);
+  dialog?.addEventListener('click', (event) => {
+    if (event.target === dialog) closeDialog();
+  });
+</script>
+
 <style>
-  /* =========================
-     HOME HERO
-     ========================= */
   .home-hero {
     position: relative;
     padding-bottom: clamp(1.6rem, 3vw, 1rem);
     --hero-gap-d: 4rem;
     --hero-gap-p: calc(var(--hero-gap-d) * 0.02);
   }
-
-  /* =========================
-     HERO DESCRIPTION
-     ========================= */
   .home-hero .hero-copy { margin-bottom: 0; }
-
-  /* =========================
-     PROMOTION
-     ========================= */
   .hero-promotion {
     display: flex;
     flex-direction: column;
@@ -159,10 +187,6 @@ const promotion2 = '新增【歷史與文明】中國集權主義的本土起源
     transform: translateY(-5px);
   }
   .hero-promotion p { margin: 0; padding: 0; }
-
-  /* =========================
-     HERO BOTTOM
-     ========================= */
   .hero-bottom {
     display: flex;
     flex-direction: column;
@@ -170,10 +194,6 @@ const promotion2 = '新增【歷史與文明】中國集權主義的本土起源
     margin-top: var(--hero-gap-d);
     transform: none;
   }
-
-  /* =========================
-     CONTACT EMAIL
-     ========================= */
   .hero-contact {
     margin: 0;
     padding: 0;
@@ -183,12 +203,35 @@ const promotion2 = '新增【歷史與文明】中國集權主義的本土起源
     color: var(--accent);
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
   }
+  .hero-contact-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 0.45em;
+    row-gap: 0.15rem;
+  }
+  .hero-email { white-space: nowrap; }
   .hero-contact a { color: inherit; text-decoration: none; }
   .hero-contact a:hover { text-decoration: underline; }
-
-  /* =========================
-     PHOTO CAPTION
-     ========================= */
+  #home-add-btn {
+    appearance: none;
+    display: inline;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    line-height: inherit;
+    text-shadow: inherit;
+    text-align: left;
+    margin-left: -1em;
+    box-shadow: none;
+    cursor: pointer;
+  }
+  #home-add-btn:hover,
+  #home-add-btn:focus-visible { text-decoration: underline; }
   .home-photo-credit {
     width: fit-content;
     max-width: 100%;
@@ -201,10 +244,31 @@ const promotion2 = '新增【歷史與文明】中國集權主義的本土起源
     opacity: 1;
     text-shadow: none;
   }
-
-  /* =========================
-     MOBILE
-     ========================= */
+  #home-add-dialog {
+    width: min(90vw, 430px);
+    border: 1px solid #777;
+    border-radius: 12px;
+    padding: 0;
+    background: #202322;
+    color: #f4f0e7;
+  }
+  #home-add-dialog::backdrop { background: rgba(0,0,0,0.65); }
+  .home-add-panel { position: relative; padding: 1.75rem; line-height: 1.8; }
+  .home-add-panel h2 { font-size: 1.2rem; margin: 0 1.5rem 1rem 0; }
+  .home-add-close {
+    position: absolute; top: 0.65rem; right: 0.85rem;
+    border: none; background: transparent; color: inherit;
+    font-size: 1.6rem; cursor: pointer;
+  }
+  #home-add-ok {
+    display: block; margin: 1.5rem 0 0 auto;
+    padding: 0.45rem 1.25rem;
+    border: 1px solid #bca477;
+    border-radius: 6px;
+    background: #c5a66d;
+    color: #171717;
+    cursor: pointer;
+  }
   @media (max-width: 700px) {
     .hero-promotion {
       width: 100%;
@@ -221,11 +285,7 @@ const promotion2 = '新增【歷史與文明】中國集權主義的本土起源
       overflow-wrap: anywhere;
     }
   }
-
-  /* 首頁 Hero 上方三行文字一起上移 */
   .home-hero > .eyebrow,
   .home-hero > h1,
-  .home-hero > .hero-copy {
-    transform: translateY(-30px);
-  }
+  .home-hero > .hero-copy { transform: translateY(-30px); }
 </style>

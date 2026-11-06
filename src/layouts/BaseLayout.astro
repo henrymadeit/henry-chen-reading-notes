@@ -2,9 +2,20 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles.css';
-const { title = 'Henry Chen 的隨筆', description = '閱讀、旅行，以及台灣與世界的觀察。', noindex = false } = Astro.props;
-const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
 import SourceCapture from '../components/SourceCapture.astro';
+
+const {
+  title = 'Henry Chen 的隨筆',
+  description = '閱讀、旅行，以及台灣與世界的觀察。',
+  noindex = false,
+  shareImage,
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
+// 分享圖片使用正式網站的絕對網址，避免本機測試網址被帶入。
+const shareImageUrl = shareImage
+  ? new URL(shareImage, 'https://henryreads.pages.dev').href
+  : null;
+const shareUrl = new URL(Astro.url.pathname, 'https://henryreads.pages.dev').href;
 ---
 <!doctype html>
 <html lang="zh-Hant" data-theme="dark">
@@ -15,12 +26,30 @@ import SourceCapture from '../components/SourceCapture.astro';
   {noindex && <meta name="robots" content="noindex, nofollow" />}
   <link rel="canonical" href={canonical} />
 
+  {shareImageUrl && (
+    <>
+      <meta property="og:type" content="website" />
+      <meta property="og:site_name" content="Henry Chen 的隨筆" />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
+      <meta property="og:url" content={shareUrl} />
+      <meta property="og:image" content={shareImageUrl} />
+      <meta property="og:image:width" content="512" />
+      <meta property="og:image:height" content="512" />
+      <meta property="og:image:alt" content="Henry Chen 的隨筆圖示" />
+      <meta property="og:locale" content="zh_TW" />
+      <meta name="twitter:card" content="summary" />
+      <meta name="twitter:title" content={title} />
+      <meta name="twitter:description" content={description} />
+      <meta name="twitter:image" content={shareImageUrl} />
+    </>
+  )}
+
   <link rel="icon" href="/icons/favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
   <link rel="manifest" href="/site.webmanifest" />
   <meta name="theme-color" content="#172328" />
-  
   <title>{title}</title>
   <script is:inline>
     (() => {
@@ -29,13 +58,11 @@ import SourceCapture from '../components/SourceCapture.astro';
     })();
   </script>
 </head>
-
 <body>
   <a class="skip-link" href="#main">跳至主要內容</a>
   <Header />
   <main id="main"><slot /></main>
   <Footer />
-
   <!-- Cloudflare Web Analytics -->
   <script
     type="module"

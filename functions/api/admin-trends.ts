@@ -35,13 +35,21 @@ export const onRequestGet: PagesFunction<ReaderEnv> = async ({request,env}) => {
         FROM reader_traffic WHERE created_at>=? AND created_at<?
         GROUP BY source ORDER BY views DESC,source`).bind(start,end),
       db.prepare('SELECT MIN(created_at) AS first_event FROM reader_events'),
-      db.prepare('SELECT MIN(created_at) AS first_source FROM reader_traffic')
+      db.prepare('SELECT MIN(created_at) AS first_source FROM reader_traffic'),
+      // First recorded appearance of each browser, including readers with no article views.
+      // Read-only queries: no migration or changes to reader tracking.
+      db.prepare(`SELECT date(first_seen,'+8 hours') AS day, COUNT(*) AS newVisitors
+        FROM readers WHERE first_seen>=? AND first_seen<?
+        GROUP BY day ORDER BY day`).bind(start,end),
+      db.prepare('SELECT COUNT(*) AS newVisitors FROM readers WHERE first_seen>=? AND first_seen<?').bind(start,end),
+      db.prepare('SELECT MIN(first_seen) AS first_reader FROM readers')
     ]);
     return privateJson({days,today,startDay,daily:results[0].results,
-      totals:results[1].results[0],articles:results[2].results,
+      totals:{...results[1].results[0],...results[8].results[0]},articles:results[2].results,
       sourceDaily:results[3].results,sources:results[4].results,
-      coverage:{...results[5].results[0],...results[6].results[0]},sourceLabels});
+      newVisitorsDaily:results[7].results,
+      coverage:{...results[5].results[0],...results[6].results[0],...results[9].results[0]},sourceLabels});
   } catch {
-    return privateJson({error:'無法讀取趨勢；請確認已先套用 2026-10-23-trends.sql。'},503);
+    return privateJson({error:'無法讀取趨勢；請確認讀者資料表與 2026-10-23-trends.sql 已套用。'},503);
   }
 };

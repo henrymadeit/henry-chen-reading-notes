@@ -16,7 +16,7 @@
     <details><summary>每日來源數字</summary><div class="admin-table-wrap"><table class="admin-table" data-source-daily-table></table></div></details>
     <h3>文章表現（最多 100 篇，依開啟次數排序）</h3>
     <div class="admin-table-wrap"><table class="admin-table" data-article-table></table></div>
-    <p class="admin-note">瀏覽器訪客以 Cookie 區分，並非精確真人數。期間訪客數會去重，不能將每日訪客數相加。新增 ♥ 計算按下次數，取消另列；留言數含回覆，均為啟用追蹤後的事件紀錄。站主僅在登入期間排除；今日資料尚未完整。</p>
+    <p class="admin-note">瀏覽器訪客以 Cookie 區分，並非精確真人數。開啟文章的期間訪客數會去重，不能將每日訪客數相加。新訪客依讀者紀錄的首次出現日期計算，包含未開啟文章者；清除 Cookie 或更換瀏覽器可能再次計為新訪客。新增 ♥ 計算按下次數，取消另列；留言數含回覆，均為啟用追蹤後的事件紀錄。站主僅在登入期間排除；今日資料尚未完整。</p>
   </div>
 </section>
 <style>
@@ -31,6 +31,7 @@
   .source-legend{display:flex;flex-wrap:wrap;gap:.5rem 1rem;margin:.7rem 0}
   .source-legend :global(span){display:flex;align-items:center;gap:.3rem}
   .source-legend :global(i){display:inline-block;width:1rem;height:.25rem}
+  .metric-charts :global(.visitor-legend){display:flex;flex-wrap:wrap;gap:.3rem 1rem;font-size:.85rem;margin:.4rem 0}
   @media(max-width:600px){.metric-charts{grid-template-columns:1fr}}
 </style>
 <script>
@@ -41,6 +42,7 @@
   const content=root.querySelector<HTMLElement>('[data-trend-content]')!;
   const titles:Record<string,string>=JSON.parse(document.querySelector<HTMLElement>('#reader-dashboard')?.dataset.titles || '{}');
   type Row={day:string;views:number;visitors:number;likes:number;unlikes:number;comments:number};
+  type NewVisitorRow={day:string;newVisitors:number};
   type SourceRow={day:string;source:string;views:number;visitors:number};
   const palette=['#58b5ff','#ffb454','#80d6a4','#e99cdd','#e9d46c','#a9a0ff','#ff8d86','#9bb7c4'];
   function el<K extends keyof HTMLElementTagNameMap>(tag:K,text?:string) {
@@ -55,7 +57,7 @@
     if(!values.length){const tr=el('tr'),td=el('td','此期間尚無紀錄。');td.colSpan=headers.length;tr.append(td);body.append(tr);}
     node.append(head,body);
   }
-  type Series={label:string;color:string;values:(number|null)[]};
+  type Series={label:string;color:string;values:(number|null)[];kind?:'bar'|'line'};
   function chart(target:HTMLElement,label:string,dates:string[],series:Series[]) {
     target.replaceChildren();
     const ns='http://www.w3.org/2000/svg';
@@ -64,6 +66,9 @@
       const node=document.createElementNS(ns,tag);for(const [k,v]of Object.entries(attrs))node.setAttribute(k,v);
       if(text!==undefined)node.textContent=text;svg.append(node);return node;
     };
+    const hasBars=series.some(s=>s.kind==='bar');
+    const step=652/Math.max(1,dates.length);
+    const xAt=(i:number)=>hasBars?48+(i+0.5)*step:48+i*652/Math.max(1,dates.length-1);
     const max=Math.max(1,...series.flatMap(s=>s.values.filter((v):v is number=>v!==null)));
     for(let i=0;i<=4;i++){
       const y=180-i*40;
@@ -71,12 +76,21 @@
       add('text',{x:'40',y:String(y+5),'text-anchor':'end',fill:'currentColor','font-size':'13'},String(Math.round(max*i/4*10)/10));
     }
     dates.forEach((date,i)=>{if(i===0||i===dates.length-1||i===Math.floor(dates.length/2))
-      add('text',{x:String(48+i*652/Math.max(1,dates.length-1)),y:'210','text-anchor':i===0?'start':i===dates.length-1?'end':'middle',fill:'currentColor','font-size':'13'},date.slice(5));});
-    for(const s of series){
+      add('text',{x:String(xAt(i)),y:'210','text-anchor':i===0?'start':i===dates.length-1?'end':'middle',fill:'currentColor','font-size':'13'},date.slice(5));});
+    // Bars behind lines, sharing the same dates, baseline and vertical scale.
+    for(const s of series.filter(s=>s.kind==='bar')){
+      s.values.forEach((value,i)=>{
+        if(value===null)return;
+        const width=Math.min(30,step*0.65),height=value/max*160;
+        const bar=add('rect',{x:String(xAt(i)-width/2),y:String(180-height),width:String(width),height:String(height),fill:s.color,opacity:'.6'});
+        const tip=document.createElementNS(ns,'title');tip.textContent=dates[i]+' '+s.label+'：'+value;bar.append(tip);
+      });
+    }
+    for(const s of series.filter(s=>s.kind!=='bar')){
       let path='';
       s.values.forEach((value,i)=>{
         if(value===null)return;
-        const x=48+i*652/Math.max(1,dates.length-1),y=180-value/max*160;
+        const x=xAt(i),y=180-value/max*160;
         path+=(i===0||s.values[i-1]===null?'M':'L')+x+','+y+' ';
         const dot=add('circle',{cx:String(x),cy:String(y),r:'3',fill:s.color});
         const tip=document.createElementNS(ns,'title');tip.textContent=dates[i]+' '+s.label+'：'+value;dot.append(tip);
@@ -91,25 +105,50 @@
     try{
       const data=await adminFetch('/api/admin-trends?days='+period.value);
       if(current!==generation)return;
+      if(!Array.isArray(data.newVisitorsDaily)||!('newVisitors' in data.totals))throw new Error('請同時更新 admin-trends.ts，才能顯示新訪客資料。');
       const dates=Array.from({length:data.days},(_,i)=>new Date(Date.parse(data.startDay+'T00:00:00Z')+i*86400000).toISOString().slice(0,10));
-      const dayOf=(value:string|null)=>value?new Date(value.replace(' ','T')+'Z').toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'}):null;
-      const first=dayOf(data.coverage.first_event),firstSource=dayOf(data.coverage.first_source);
+      const dayOf=(value:string|null)=>value?new Date(/(?:Z|[+-]\d{2}:?\d{2})$/i.test(value)?value:value.replace(' ','T')+'Z').toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'}):null;
+      const first=dayOf(data.coverage.first_event),firstSource=dayOf(data.coverage.first_source),firstReader=dayOf(data.coverage.first_reader);
       const recorded=(day:string,begin:string|null)=>!!begin&&day>=begin;
       const daily=new Map<string,Row>((data.daily as Row[]).map(r=>[r.day,r]));
+      const newDaily=new Map<string,number>((data.newVisitorsDaily as NewVisitorRow[]).map(r=>[r.day,Number(r.newVisitors)]));
+      const newValue=(d:string)=>recorded(d,firstReader)?newDaily.get(d)??0:null;
       const summary=root.querySelector<HTMLElement>('[data-trend-summary]')!;summary.replaceChildren();
-      const metrics=[['views','文章開啟'],['visitors','瀏覽器訪客'],['likes','新增文章 ♥'],['comments','留言／回覆']] as const;
+      const metrics=[
+        ['views','期間文章開啟次數','每日文章開啟次數'],
+        ['visitors','期間文章訪客數','每日開啟文章訪客數'],
+        ['likes','期間增加的♥數','每日增加♥數'],
+        ['comments','期間增加的留言與回覆之和','每日增加的留言與回覆和']
+      ] as const;
       for(const [key,label]of metrics)summary.append(el('p',label+'：'+(data.totals[key]??0)));
-      summary.append(el('p','取消文章 ♥：'+(data.totals.unlikes??0)));
+      summary.append(el('p','期間首次出現訪客數：'+data.totals.newVisitors));
+      summary.append(el('p','期間取消的♥數：'+(data.totals.unlikes??0)));
       root.querySelector<HTMLElement>('[data-trend-coverage]')!.textContent=
         '台灣時間 '+data.startDay+' ～ '+data.today+'。最早事件：'+(data.coverage.first_event?localTime(data.coverage.first_event):'尚無')+
-        '；最早來源：'+(data.coverage.first_source?localTime(data.coverage.first_source):'尚無')+'。首筆紀錄之前留白，首日可能不完整；舊資料不回補來源。';
+        '；最早來源：'+(data.coverage.first_source?localTime(data.coverage.first_source):'尚無')+'；最早讀者：'+(data.coverage.first_reader?localTime(data.coverage.first_reader):'尚無')+'。各類首筆紀錄之前留白，首日可能不完整；舊資料不回補來源。';
       const metricCharts=root.querySelector<HTMLElement>('[data-metric-charts]')!;metricCharts.replaceChildren();
-      metrics.forEach(([key,label],i)=>{
+      metrics.forEach(([key,,label],i)=>{
         const figure=el('figure'),caption=el('figcaption',label),plot=el('div');figure.append(caption,plot);metricCharts.append(figure);
-        chart(plot,label,dates,[{label,color:palette[i],values:dates.map(d=>recorded(d,first)?Number(daily.get(d)?.[key]??0):null)}]);
+        const series:Series[]=[{label,color:palette[i],values:dates.map(d=>recorded(d,first)?Number(daily.get(d)?.[key]??0):null)}];
+        if(key==='visitors'){
+          caption.textContent='每日開啟文章訪客數';
+          series.unshift({label:'每日首次出現訪客數',color:'#80d6a4',kind:'bar',values:dates.map(newValue)});
+          const legend=el('div');legend.className='visitor-legend';
+          const line=el('span','━ 每日開啟文章訪客數');line.style.color=palette[i];
+          const bar=el('span','▰ 每日首次出現訪客數');bar.style.color='#80d6a4';
+          legend.append(line,bar);figure.insertBefore(legend,plot);
+          const note=el('p','折線：當日開過文章的瀏覽器。長條：當日首次被記錄的瀏覽器，不限是否開過文章，因此可能高於折線。');
+          note.className='admin-note';figure.append(note);
+        }
+        chart(plot,key==='visitors'?'每日開啟文章訪客數與每日首次出現訪客數':label,dates,series);
       });
-      table('[data-daily-table]',['日期','文章開啟','瀏覽器訪客','新增 ♥','取消 ♥','留言／回覆'],
-        dates.map(d=>[d,...['views','visitors','likes','unlikes','comments'].map(k=>recorded(d,first)?Number((daily.get(d) as any)?.[k]??0):'未有紀錄')]));
+      table('[data-daily-table]',['日期','文章開啟','開啟文章的訪客','新訪客（首次出現）','新增 ♥','取消 ♥','留言／回覆'],
+        dates.map(d=>[
+          d,
+          ...(['views','visitors'] as const).map(k=>recorded(d,first)?Number(daily.get(d)?.[k]??0):'未有紀錄'),
+          newValue(d)??'未有紀錄',
+          ...(['likes','unlikes','comments'] as const).map(k=>recorded(d,first)?Number(daily.get(d)?.[k]??0):'未有紀錄')
+        ]));
       const sourceKeys=Object.keys(data.sourceLabels) as string[];
       const sourceDay=new Map<string,number>((data.sourceDaily as SourceRow[]).map(r=>[r.day+'|'+r.source,r.views]));
       const legend=root.querySelector<HTMLElement>('[data-source-legend]')!;legend.replaceChildren();
