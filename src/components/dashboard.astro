@@ -1,0 +1,353 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+import { getCollection } from 'astro:content';
+import { visibleArticles } from '../lib/articles';
+import DashboardTrends from '../components/DashboardTrends.astro';
+import DashboardInstalls from '../components/DashboardInstalls.astro';
+
+const titles = Object.fromEntries(
+  visibleArticles(await getCollection('articles')).map(a => [a.id, a.data.title])
+);
+---
+
+<AdminLayout title="Dashboard">
+  <div id="reader-dashboard" data-titles={JSON.stringify(titles)}>
+    <nav class="dashboard-views" aria-label="Dashboard 檢視方式">
+      <button type="button" data-view="visitors" aria-pressed="true" aria-controls="visitor-view">依訪客查看</button>
+      <button type="button" data-view="articles" aria-pressed="false" aria-controls="article-view">依文章查看</button>
+      <button type="button" data-view="other" aria-pressed="false" aria-controls="other-view">其他</button>
+    </nav>
+
+    <div class="admin-actions dashboard-period">
+      <label>觀察期間 <select data-dashboard-days><option value="7">近 7 天</option><option value="30" selected>近 30 天</option><option value="90">近 90 天</option></select></label>
+      <button type="button" data-dashboard-refresh>重新整理期間統計</button>
+    </div>
+    <section id="visitor-view" aria-label="依訪客查看">
+      <DashboardTrends view="visitors" />
+      <section aria-label="累計訪客排行">
+        <h2>累計訪客排行</h2>
+        <p class="admin-note">以下為啟用追蹤後的累計排行，不受上方觀察期間與列表搜尋影響。點選長條可查看該訪客的閱讀足跡。</p>
+        <button type="button" data-ranking-refresh>重新整理累計排行</button>
+        <p role="status" aria-live="polite" data-ranking-status></p>
+        <div class="reader-rankings">
+          <section><h3>文章開啟次數前十名</h3><div data-access-ranking></div></section>
+          <section><h3>目前文章 ♥ 數前十名</h3><div data-like-ranking></div></section>
+        </div>
+      </section>
+      <p class="admin-note">
+        以下為啟用追蹤後的累計紀錄，不受上方觀察期間影響。每列代表一個瀏覽器，並非經過驗證的真人。同名暱稱依序編號；不同裝置不自動合併。已登入站主的操作不列入。
+      </p>
+      <section data-reader-list>
+        <h2>訪客列表</h2>
+        <p data-totals></p>
+        <form class="admin-actions" data-reader-search>
+          <input name="q" placeholder="搜尋暱稱或訪客編號" aria-label="搜尋訪客" maxlength="80" />
+          <select name="sort" aria-label="排序">
+            <option value="accesses" selected>文章開啟次數（Access）最多</option>
+            <option value="visits">來訪次數最多</option>
+            <option value="likes">文章 ♥ 最多</option>
+            <option value="comments">留言／回覆最多</option>
+            <option value="recent">最近來訪</option>
+          </select>
+          <button type="submit">查詢</button>
+        </form>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr>
+              <th scope="col">訪客</th><th scope="col">最近來訪</th>
+              <th scope="col">累計文章開啟次數（Access）</th><th scope="col">累計來訪次數</th><th scope="col">開過的不同文章數</th>
+              <th scope="col">目前文章 ♥ 數</th><th scope="col">累計留言／回覆</th>
+            </tr></thead>
+            <tbody data-reader-rows></tbody>
+          </table>
+        </div>
+        <p class="admin-note">
+          Access 為文章開啟次數，同一篇重複開啟也累計。相隔超過 30 分鐘的活動算另一次來訪。「開過」不代表讀完。文章 ♥ 為啟用後記錄、目前仍保留的愛心數，已取消者不計入。點選訪客稱呼可查看閱讀足跡。
+        </p>
+      </section>
+      <section data-reader-detail hidden>
+        <button type="button" data-back>回到訪客列表</button>
+        <h2 data-reader-title></h2>
+        <p class="admin-note" data-reader-meta></p>
+        <div data-reader-events></div>
+      </section>
+      <p role="status" aria-live="polite" data-reader-status></p>
+      <div class="admin-actions">
+        <button data-prev type="button" disabled>上一頁</button>
+        <span data-page></span>
+        <button data-next type="button" disabled>下一頁</button>
+      </div>
+    </section>
+
+    <section id="article-view" aria-label="依文章查看" hidden>
+      <DashboardTrends view="articles" />
+    </section>
+    <section id="other-view" aria-label="其他" hidden>
+      <DashboardInstalls />
+    </section>
+  </div>
+</AdminLayout>
+
+<script>
+  import { ensureAdmin, adminFetch, localTime, articleLink } from '../lib/admin';
+
+  const root = document.querySelector<HTMLElement>('#reader-dashboard')!;
+  const titles: Record<string, string> = JSON.parse(root.dataset.titles || '{}');
+  const visitorView = root.querySelector<HTMLElement>('#visitor-view')!;
+  const articleView = root.querySelector<HTMLElement>('#article-view')!;
+  const otherView = root.querySelector<HTMLElement>('#other-view')!;
+  const periodControls = root.querySelector<HTMLElement>('.dashboard-period')!;
+  const viewButtons = root.querySelectorAll<HTMLButtonElement>('[data-view]');
+
+  function showView(view: string, updateUrl = false) {
+    const current = view === 'articles' || view === 'other' ? view : 'visitors';
+    visitorView.hidden = current !== 'visitors';
+    articleView.hidden = current !== 'articles';
+    otherView.hidden = current !== 'other';
+    periodControls.hidden = current === 'other';
+    for (const button of viewButtons) {
+      button.setAttribute('aria-pressed', String(button.dataset.view === current));
+    }
+    if (updateUrl) {
+      const url = new URL(location.href);
+      url.searchParams.set('view', current);
+      history.replaceState(null, '', url);
+    }
+  }
+  showView(new URL(location.href).searchParams.get('view') || 'visitors');
+  for (const button of viewButtons) {
+    button.addEventListener('click', () => showView(button.dataset.view || 'visitors', true));
+  }
+
+  const form = root.querySelector<HTMLFormElement>('[data-reader-search]')!;
+  const sort = form.querySelector<HTMLSelectElement>('[name="sort"]')!;
+  const rows = root.querySelector<HTMLElement>('[data-reader-rows]')!;
+  const status = root.querySelector<HTMLElement>('[data-reader-status]')!;
+  const prev = root.querySelector<HTMLButtonElement>('[data-prev]')!;
+  const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
+  const back = root.querySelector<HTMLButtonElement>('[data-back]')!;
+  let offset = 0;
+  let selected: number | null = null;
+  let listOffset = 0;
+  let busy = false;
+
+  function cell(tr: HTMLElement, value: unknown) {
+    const td = document.createElement('td');
+    td.textContent = String(value);
+    tr.append(td);
+    return td;
+  }
+
+  async function load() {
+    if (busy) return;
+    busy = true;
+    prev.disabled = true;
+    next.disabled = true;
+    back.disabled = true;
+    sort.disabled = true;
+    status.textContent = '載入中……';
+    try {
+      const params = new URLSearchParams({ offset: String(offset) });
+      if (selected !== null) {
+        params.set('id', String(selected));
+      } else {
+        const fields = new FormData(form);
+        params.set('q', String(fields.get('q') || ''));
+        // Read the value directly: disabled form controls are omitted from FormData.
+        params.set('sort', sort.value);
+      }
+      const data = await adminFetch(`/api/admin-readers?${params}`);
+      root.querySelector<HTMLElement>('[data-reader-list]')!.hidden = selected !== null;
+      root.querySelector<HTMLElement>('[data-reader-detail]')!.hidden = selected === null;
+      if (selected === null) {
+        root.querySelector<HTMLElement>('[data-totals]')!.textContent =
+          `全站累計：${data.totals.readers} 位瀏覽器訪客 · ${data.totals.visits} 次來訪 · ${data.totals.views} 次文章開啟（不隨搜尋條件變動）`;
+        rows.replaceChildren();
+        for (const reader of data.items) {
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.textContent = reader.label;
+          button.title = `瀏覽器編號 ${reader.id}`;
+          button.onclick = () => {
+            if (busy) return;
+            listOffset = offset;
+            selected = reader.id;
+            offset = 0;
+            void load();
+          };
+          td.append(button);
+          tr.append(td);
+          cell(tr, localTime(reader.last_seen));
+          cell(tr, reader.accesses);
+          cell(tr, reader.visits);
+          cell(tr, reader.articles);
+          cell(tr, reader.likes);
+          cell(tr, reader.comments);
+          rows.append(tr);
+        }
+        status.textContent = data.items.length ? '' : '尚無符合的訪客紀錄。';
+      } else {
+        root.querySelector<HTMLElement>('[data-reader-title]')!.textContent = `${data.reader.label} 的閱讀足跡`;
+        root.querySelector<HTMLElement>('[data-reader-meta]')!.textContent =
+          `瀏覽器編號 ${data.reader.id} · 首次出現 ${localTime(data.reader.first_seen)} · 累計 ${data.reader.visits} 次來訪`;
+        const list = root.querySelector<HTMLElement>('[data-reader-events]')!;
+        list.replaceChildren();
+        for (const article of data.articles) {
+          const card = document.createElement('section');
+          card.className = 'reader-article';
+          const heading = document.createElement('h3');
+          const a = document.createElement('a');
+          a.href = articleLink(article.slug) + (article.messages.length ? '#comments' : '');
+          a.textContent = titles[article.slug] || article.slug;
+          heading.append(a);
+          card.append(heading);
+          for (const message of article.messages) {
+            const p = document.createElement('p');
+            p.className = 'reader-activity';
+            const action = message.kind === 'reply'
+              ? `回覆 → ${message.reply_to_name ?? '（對象已不存在）'}` : '留言';
+            p.textContent = `${action}，${localTime(message.created_at)}：${message.message ?? '（原文已不存在）'}`;
+            card.append(p);
+          }
+          if (article.like_time) {
+            const p = document.createElement('p');
+            p.className = 'reader-activity';
+            p.textContent = `${article.liked ? '愛心' : '愛心已取消'}，${localTime(article.like_time)}`;
+            card.append(p);
+          }
+          const access = document.createElement('p');
+          access.className = 'reader-activity';
+          access.textContent = `文章開啟 ${article.accesses} 次，最後開啟：${article.last_access ? localTime(article.last_access) : '尚無紀錄'}`;
+          card.append(access);
+          list.append(card);
+        }
+        status.textContent = data.articles.length ? '' : '尚無活動紀錄。';
+      }
+      prev.disabled = offset === 0;
+      next.disabled = !data.more;
+      root.querySelector<HTMLElement>('[data-page]')!.textContent = `第 ${Math.floor(offset / 50) + 1} 頁`;
+    } catch (error) {
+      status.textContent = error instanceof Error ? error.message : '載入失敗';
+    } finally {
+      busy = false;
+      back.disabled = false;
+      sort.disabled = false;
+    }
+  }
+
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    if (busy) return;
+    offset = 0;
+    void load();
+  });
+  sort.addEventListener('change', () => {
+    if (busy) return;
+    offset = 0;
+    void load();
+  });
+  back.addEventListener('click', () => {
+    if (busy) return;
+    selected = null;
+    offset = listOffset;
+    void load();
+  });
+  prev.onclick = () => {
+    if (busy) return;
+    offset = Math.max(0, offset - 50);
+    void load();
+  };
+  next.onclick = () => {
+    if (busy) return;
+    offset += 50;
+    void load();
+  };
+  type Ranking = { id: number; label: string; accesses: number; likes: number; comments: number };
+  function renderRanking(selector: string, items: Ranking[], metric: 'accesses' | 'likes') {
+    const chart = root.querySelector<HTMLElement>(selector)!;
+    chart.replaceChildren();
+    if (!items.length) { chart.textContent = '尚無紀錄。'; return; }
+    const max = Math.max(1, ...items.map(item => Number(item[metric])));
+    for (const item of items) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'reader-rank-row';
+      button.title = `${item.label}（瀏覽器編號 ${item.id}）：${item[metric]}${metric === 'accesses' ? ' 次文章開啟' : ' 個文章愛心'}`;
+      const label = document.createElement('span'); label.className = 'reader-rank-name'; label.textContent = item.label;
+      const detail = document.createElement('small');
+      detail.className = 'reader-rank-detail';
+      for (const text of [`Access ${item.accesses}`, `♥ ${item.likes}`, `留言／回覆 ${item.comments}`]) {
+        const metricLabel = document.createElement('span');
+        metricLabel.textContent = text;
+        detail.append(metricLabel);
+      }
+      const track = document.createElement('span'); track.className = 'reader-rank-track';
+      const bar = document.createElement('span'); bar.className = 'reader-rank-bar';
+      bar.style.width = `${Number(item[metric]) / max * 100}%`;
+      if (metric === 'likes') bar.style.backgroundColor = '#e99cdd';
+      track.append(bar);
+      const number = document.createElement('span'); number.className = 'reader-rank-value'; number.textContent = String(item[metric]);
+      button.append(label, track, number, detail);
+      button.addEventListener('click', async () => {
+        if (busy) return;
+        if (selected === null) listOffset = offset;
+        selected = item.id; offset = 0;
+        await load();
+        root.querySelector('[data-reader-detail]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      chart.append(button);
+    }
+  }
+  let rankingBusy = false;
+  async function loadRankings() {
+    if (rankingBusy) return;
+    rankingBusy = true;
+    const rankingStatus = root.querySelector<HTMLElement>('[data-ranking-status]')!;
+    const refresh = root.querySelector<HTMLButtonElement>('[data-ranking-refresh]')!;
+    refresh.disabled = true; rankingStatus.textContent = '載入累計排行中……';
+    try {
+      const data = await adminFetch('/api/admin-readers?ranking=1');
+      if (!Array.isArray(data.accesses) || !Array.isArray(data.likes)) throw new Error('請同時更新 admin-readers.ts。');
+      renderRanking('[data-access-ranking]', data.accesses, 'accesses');
+      renderRanking('[data-like-ranking]', data.likes, 'likes');
+      rankingStatus.textContent = '';
+    } catch (error) {
+      rankingStatus.textContent = error instanceof Error ? error.message : '無法載入累計排行';
+    } finally { rankingBusy = false; refresh.disabled = false; }
+  }
+  root.querySelector('[data-ranking-refresh]')!.addEventListener('click', () => void loadRankings());
+  if (await ensureAdmin()) { void load(); void loadRankings(); }
+</script>
+
+<style is:global>
+  #reader-dashboard [hidden] { display: none !important; }
+  .dashboard-views { display:flex; flex-wrap:wrap; gap:.6rem; margin:1rem 0 1.5rem; align-items:center; }
+  .dashboard-views > button, .dashboard-views > a {
+    display:inline-flex; align-items:center; justify-content:center; padding:.55rem .9rem;
+    border:1px solid var(--border, #888); border-radius:.4rem; color:inherit;
+    background:transparent; font:inherit; line-height:1.5; text-decoration:none; cursor:pointer;
+  }
+  .dashboard-views > button[aria-pressed="true"] {
+    font-weight:700; border-color:currentColor; box-shadow:inset 0 -3px 0 currentColor;
+  }
+  .dashboard-views > :focus-visible { outline:2px solid currentColor; outline-offset:3px; }
+  .reader-rankings { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.5rem; margin-bottom:2rem; }
+  .reader-rankings > section { min-width:0; }
+  .reader-rank-row { display:grid; grid-template-columns:minmax(4rem,1fr) minmax(3rem,2fr) 3rem; gap:.6rem; align-items:center; width:100%; padding:.4rem .2rem; border:0; background:transparent; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+  .reader-rank-row > .reader-rank-name { overflow-wrap:anywhere; }
+  .reader-rank-row > .reader-rank-value { text-align:right; white-space:nowrap; }
+  .reader-rank-row > .reader-rank-detail { grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:.2rem .85rem; font-size:.75rem; line-height:1.6; opacity:.8; margin:0; text-align:left; }
+  .reader-rank-detail > span { white-space:nowrap; }
+  .reader-rank-track { display:block; background:#7772; height:.8rem; border-radius:.2rem; }
+  .reader-rank-bar { display:block; height:100%; background:#58b5ff; border-radius:.2rem; }
+  .reader-rank-row:hover { background:#7772; }
+  .reader-rank-row:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
+  @media(max-width:600px) { .reader-rankings { grid-template-columns:1fr; } }
+  .reader-article { padding:.85rem 0; border-bottom:1px solid var(--border, #666); }
+  .reader-article h3 { font-size:1.05rem; margin:0 0 .25rem; }
+  .reader-article .reader-activity {
+    margin:.15rem 0; line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere;
+  }
+</style>

@@ -8,6 +8,25 @@ export const onRequestGet: PagesFunction<ReaderEnv> = async ({request, env}) => 
   const id = Number(url.searchParams.get('id'));
   const db = env.henryreads_comments;
   try {
+    if (url.searchParams.get('ranking') === '1') {
+      const rankings = await db.batch([
+        db.prepare(`SELECT r.id, r.name, r.name_number, r.visits,
+          COUNT(*) AS accesses,
+          (SELECT COUNT(*) FROM reader_likes l WHERE l.reader_id = r.id AND l.target_type = 'article' AND l.liked = 1) AS likes,
+          (SELECT COUNT(*) FROM reader_events m WHERE m.reader_id = r.id AND m.kind IN ('comment','reply')) AS comments
+          FROM readers r JOIN reader_events e ON e.reader_id = r.id AND e.kind = 'view'
+          GROUP BY r.id ORDER BY accesses DESC, r.visits DESC, r.id DESC LIMIT 10`),
+        db.prepare(`SELECT r.id, r.name, r.name_number, r.visits, COUNT(*) AS likes,
+          (SELECT COUNT(*) FROM reader_events e WHERE e.reader_id = r.id AND e.kind = 'view') AS accesses,
+          (SELECT COUNT(*) FROM reader_events m WHERE m.reader_id = r.id AND m.kind IN ('comment','reply')) AS comments
+          FROM readers r JOIN reader_likes l ON l.reader_id = r.id
+          WHERE l.target_type = 'article' AND l.liked = 1
+          GROUP BY r.id ORDER BY likes DESC, r.visits DESC, r.id DESC LIMIT 10`)
+      ]);
+      const labels = (rows: unknown[]) => (rows as {id:number;name:string|null;name_number:number|null}[])
+        .map(r => ({...r, label:readerLabel(r)}));
+      return privateJson({accesses:labels(rankings[0].results), likes:labels(rankings[1].results)});
+    }
     if (url.searchParams.has('id')) {
       if (!Number.isSafeInteger(id) || id <= 0) return privateJson({error: '無效讀者'}, 400);
       const reader = await db.prepare('SELECT id, name, name_number, first_seen, last_seen, visits FROM readers WHERE id = ?')
@@ -50,8 +69,14 @@ export const onRequestGet: PagesFunction<ReaderEnv> = async ({request, env}) => 
     }
     const search = (url.searchParams.get('q') ?? '').slice(0,80);
     const sort = url.searchParams.get('sort');
-    const order = sort === 'visits' ? 'r.visits DESC, r.id DESC' : sort === 'comments' ? 'comments DESC, r.id DESC' : 'r.last_seen DESC, r.id DESC';
+    // Only fixed SQL fragments are used; URL input is never interpolated into SQL.
+    const order = sort === 'accesses' ? 'accesses DESC, r.visits DESC, r.id DESC'
+      : sort === 'visits' ? 'r.visits DESC, r.id DESC'
+      : sort === 'likes' ? 'likes DESC, r.visits DESC, r.id DESC'
+      : sort === 'comments' ? 'comments DESC, r.id DESC'
+      : 'r.last_seen DESC, r.id DESC';
     const {results} = await db.prepare(`SELECT r.id, r.name, r.name_number, r.first_seen, r.last_seen, r.visits,
+      (SELECT COUNT(*) FROM reader_events e WHERE e.reader_id = r.id AND e.kind = 'view') AS accesses,
       (SELECT COUNT(DISTINCT e.slug) FROM reader_events e WHERE e.reader_id = r.id AND e.kind = 'view') AS articles,
       (SELECT COUNT(*) FROM reader_likes l WHERE l.reader_id = r.id AND l.target_type = 'article' AND l.liked = 1) AS likes,
       (SELECT COUNT(*) FROM reader_events e WHERE e.reader_id = r.id AND e.kind IN ('comment','reply')) AS comments

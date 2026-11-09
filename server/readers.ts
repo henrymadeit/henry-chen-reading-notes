@@ -10,7 +10,11 @@ export function readerCookie(key: string, request: Request) {
   return `${cookieName}=${key}; Path=/; HttpOnly; SameSite=Lax; Max-Age=31536000${new URL(request.url).protocol === 'https:' ? '; Secure' : ''}`;
 }
 export async function recordEvent(db: D1Database, key: string, slug: string, kind: string, targetId: number | null = null, name?: string, source?: string) {
-  const statements = [db.prepare('INSERT INTO readers(reader_key) VALUES (?) ON CONFLICT(reader_key) DO NOTHING').bind(key)];
+  // Existing browsers produce no candidate row, so AUTOINCREMENT is not advanced.
+  // Keep the existence check and insert in one statement inside the existing batch.
+  const statements = [db.prepare(`INSERT INTO readers(reader_key)
+    SELECT ? WHERE NOT EXISTS (SELECT 1 FROM readers WHERE reader_key = ?)
+    ON CONFLICT(reader_key) DO NOTHING`).bind(key, key)];
   if (name) {
     statements.push(db.prepare(`UPDATE readers SET name = ?, name_number =
       COALESCE((SELECT MAX(name_number) + 1 FROM readers WHERE name = ?), 0)

@@ -1,0 +1,13 @@
+{
+  "name": "henryreads-reader-id-remap",
+  "compatibility_date": "2026-11-09",
+  "d1_databases": [
+    {
+      "binding": "henryreads_comments",
+      "database_name": "henryreads-comments",
+      "database_id": "0b371ea3-0c7f-4bd8-a2f2-dfe7fe7f7ae1",
+      "migrations_dir": "migrations",
+      "migrations_table": "reader_id_remap_migrations"
+    }
+  ]
+}

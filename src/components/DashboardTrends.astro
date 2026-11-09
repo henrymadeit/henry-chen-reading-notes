@@ -1,21 +1,31 @@
-<section id="dashboard-trends" class="trends-panel">
-  <h2>閱讀與來源趨勢</h2>
-  <label>觀察期間 <select data-trend-days><option value="7">近 7 天</option><option value="30" selected>近 30 天</option><option value="90">近 90 天</option></select></label>
-  <button type="button" data-trend-refresh>重新整理</button>
+---
+interface Props { view: 'visitors' | 'articles' }
+const { view } = Astro.props;
+---
+<section class="trends-panel" data-dashboard-trends data-view-kind={view}>
+  <h2>{view === 'visitors' ? '訪客與互動趨勢' : '文章與來源趨勢'}</h2>
   <p role="status" aria-live="polite" data-trend-status>載入中……</p>
   <div data-trend-content hidden>
     <p data-trend-coverage class="admin-note"></p>
     <div data-trend-summary class="trend-summary"></div>
+    {view === 'articles' && <>
+      <h3>來源帶來的文章開啟趨勢</h3>
+      <p class="admin-note">沿用本分頁最近 30 分鐘的進站來源；先到首頁再開文章仍保留來源。這是文章開啟次數，並非進站次數或點擊廣告數。來源可能受 App 與瀏覽器限制；無資料時不推測。</p>
+      <div data-source-legend class="source-legend"></div>
+      <div data-source-chart></div>
+      <div class="admin-table-wrap"><table class="admin-table" data-source-table></table></div>
+      <details><summary>每日來源數字</summary><div class="admin-table-wrap"><table class="admin-table" data-source-daily-table></table></div></details>
+    </>}
     <div data-metric-charts class="metric-charts"></div>
     <details><summary>每日數字</summary><div class="admin-table-wrap"><table class="admin-table" data-daily-table></table></div></details>
-    <h3>來源帶來的文章開啟趨勢</h3>
-    <p class="admin-note">沿用本分頁最近 30 分鐘的進站來源；先到首頁再開文章仍保留來源。這是文章開啟次數，並非進站次數或點擊廣告數。來源可能受 App 與瀏覽器限制；無資料時不推測。</p>
-    <div data-source-legend class="source-legend"></div>
-    <div data-source-chart></div>
-    <div class="admin-table-wrap"><table class="admin-table" data-source-table></table></div>
-    <details><summary>每日來源數字</summary><div class="admin-table-wrap"><table class="admin-table" data-source-daily-table></table></div></details>
-    <h3>文章表現（最多 100 篇，依開啟次數排序）</h3>
-    <div class="admin-table-wrap"><table class="admin-table" data-article-table></table></div>
+    {view === 'articles' && <>
+      <h3>期間文章訪客數前十名</h3>
+      <p class="admin-note">依此期間開過文章的不同瀏覽器數排序，同一瀏覽器開同一篇多次只算一位；不代表讀完。</p>
+      <div data-article-ranking class="article-ranking"></div>
+      <h3>文章表現（最多 100 篇，依開啟次數排序）</h3>
+      <div class="admin-table-wrap"><table class="admin-table" data-article-table></table></div>
+
+    </>}
     <p class="admin-note">瀏覽器訪客以 Cookie 區分，並非精確真人數。開啟文章的期間訪客數會去重，不能將每日訪客數相加。新訪客依讀者紀錄的首次出現日期計算，包含未開啟文章者；清除 Cookie 或更換瀏覽器可能再次計為新訪客。新增 ♥ 計算按下次數，取消另列；留言數含回覆，均為啟用追蹤後的事件紀錄。站主僅在登入期間排除；今日資料尚未完整。</p>
   </div>
 </section>
@@ -33,11 +43,30 @@
   .source-legend :global(i){display:inline-block;width:1rem;height:.25rem}
   .metric-charts :global(.visitor-legend){display:flex;flex-wrap:wrap;gap:.3rem 1rem;font-size:.85rem;margin:.4rem 0}
   @media(max-width:600px){.metric-charts{grid-template-columns:1fr}}
+  .article-ranking :global(.article-rank-row){display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr) 3rem;gap:.7rem;align-items:center;padding:.5rem 0;color:inherit;text-decoration:none}
+  .article-ranking :global(.article-rank-row > span:first-child){overflow-wrap:anywhere}
+  .article-ranking :global(.article-rank-row > span:last-child){text-align:right}
+  .article-ranking :global(.article-rank-track){display:block;height:.85rem;background:#7772;border-radius:.2rem}
+  .article-ranking :global(.article-rank-bar){display:block;height:100%;background:#58b5ff;border-radius:.2rem}
+  .article-ranking :global(.article-rank-row:hover){text-decoration:underline}
 </style>
 <script>
   import {ensureAdmin,adminFetch,articleLink,localTime} from '../lib/admin';
-  const root=document.querySelector<HTMLElement>('#dashboard-trends')!;
-  const period=root.querySelector<HTMLSelectElement>('[data-trend-days]')!;
+  const period=document.querySelector<HTMLSelectElement>('[data-dashboard-days]')!;
+  const responses=new Map<string,Promise<any>>();
+  const loaders:(()=>Promise<void>)[]=[];
+  function requestTrends(days:string) {
+    let request=responses.get(days);
+    if(!request){
+      request=adminFetch('/api/admin-trends?days='+days);
+      responses.set(days,request);
+      const pending=request;
+      void request.catch(()=>{if(responses.get(days)===pending)responses.delete(days);});
+    }
+    return request;
+  }
+  for(const root of document.querySelectorAll<HTMLElement>('[data-dashboard-trends]')) {
+  const visitorView=root.dataset.viewKind==='visitors';
   const status=root.querySelector<HTMLElement>('[data-trend-status]')!;
   const content=root.querySelector<HTMLElement>('[data-trend-content]')!;
   const titles:Record<string,string>=JSON.parse(document.querySelector<HTMLElement>('#reader-dashboard')?.dataset.titles || '{}');
@@ -103,7 +132,7 @@
   async function load(){
     const current=++generation;status.textContent='載入中……';content.hidden=true;
     try{
-      const data=await adminFetch('/api/admin-trends?days='+period.value);
+      const data=await requestTrends(period.value);
       if(current!==generation)return;
       if(!Array.isArray(data.newVisitorsDaily)||!('newVisitors' in data.totals))throw new Error('請同時更新 admin-trends.ts，才能顯示新訪客資料。');
       const dates=Array.from({length:data.days},(_,i)=>new Date(Date.parse(data.startDay+'T00:00:00Z')+i*86400000).toISOString().slice(0,10));
@@ -113,6 +142,13 @@
       const daily=new Map<string,Row>((data.daily as Row[]).map(r=>[r.day,r]));
       const newDaily=new Map<string,number>((data.newVisitorsDaily as NewVisitorRow[]).map(r=>[r.day,Number(r.newVisitors)]));
       const newValue=(d:string)=>recorded(d,firstReader)?newDaily.get(d)??0:null;
+      if(visitorView&&(!Number.isSafeInteger(data.visitorBaseline)||data.visitorBaseline<0))
+        throw new Error('請同時更新 admin-trends.ts，才能顯示累計訪客數。');
+      let cumulative=Number(data.visitorBaseline??0);
+      const cumulativeValues=dates.map(d=>{
+        cumulative+=newDaily.get(d)??0;
+        return recorded(d,firstReader)?cumulative:null;
+      });
       const summary=root.querySelector<HTMLElement>('[data-trend-summary]')!;summary.replaceChildren();
       const metrics=[
         ['views','期間文章開啟次數','每日文章開啟次數'],
@@ -120,14 +156,29 @@
         ['likes','期間增加的♥數','每日增加♥數'],
         ['comments','期間增加的留言與回覆之和','每日增加的留言與回覆和']
       ] as const;
-      for(const [key,label]of metrics)summary.append(el('p',label+'：'+(data.totals[key]??0)));
-      summary.append(el('p','期間首次出現訪客數：'+data.totals.newVisitors));
-      summary.append(el('p','期間取消的♥數：'+(data.totals.unlikes??0)));
+      const displayedMetrics=metrics.filter(([key])=>visitorView?key!=='views':key==='views');
+      const summaryMetrics = visitorView ? [
+        ['visitors','期間訪客數'],
+        ['newVisitors','出現新訪客數'],
+        ['likes','期間增加的♥數'],
+        ['unlikes','取消的♥數'],
+        ['comments','期間增加的留言與回覆之和']
+      ] as const : [['views','期間文章開啟次數']] as const;
+      for(const [key,label]of summaryMetrics)summary.append(el('p',label+'：'+(data.totals[key]??0)));
       root.querySelector<HTMLElement>('[data-trend-coverage]')!.textContent=
         '台灣時間 '+data.startDay+' ～ '+data.today+'。最早事件：'+(data.coverage.first_event?localTime(data.coverage.first_event):'尚無')+
         '；最早來源：'+(data.coverage.first_source?localTime(data.coverage.first_source):'尚無')+'；最早讀者：'+(data.coverage.first_reader?localTime(data.coverage.first_reader):'尚無')+'。各類首筆紀錄之前留白，首日可能不完整；舊資料不回補來源。';
       const metricCharts=root.querySelector<HTMLElement>('[data-metric-charts]')!;metricCharts.replaceChildren();
-      metrics.forEach(([key,,label],i)=>{
+      if(visitorView){
+        const figure=el('figure'),caption=el('figcaption','累計訪客數'),plot=el('div');
+        figure.append(caption,plot);metricCharts.append(figure);
+        const latest=cumulativeValues.filter((value):value is number=>value!==null).at(-1)??0;
+        const note=el('p',`截至今日已記錄 ${latest} 位瀏覽器訪客。依首次出現日期累加，包含只到首頁者；同一瀏覽器重訪不重複增加。各日為當日結束累計，今日截至目前。`);
+        note.className='admin-note';figure.append(note);
+        chart(plot,'累計訪客數',dates,[{label:'累計訪客數',color:'#58b5ff',values:cumulativeValues}]);
+      }
+      displayedMetrics.forEach(([key,,label])=>{
+        const i=metrics.findIndex(m=>m[0]===key);
         const figure=el('figure'),caption=el('figcaption',label),plot=el('div');figure.append(caption,plot);metricCharts.append(figure);
         const series:Series[]=[{label,color:palette[i],values:dates.map(d=>recorded(d,first)?Number(daily.get(d)?.[key]??0):null)}];
         if(key==='visitors'){
@@ -142,30 +193,50 @@
         }
         chart(plot,key==='visitors'?'每日開啟文章訪客數與每日首次出現訪客數':label,dates,series);
       });
-      table('[data-daily-table]',['日期','文章開啟','開啟文章的訪客','新訪客（首次出現）','新增 ♥','取消 ♥','留言／回覆'],
-        dates.map(d=>[
-          d,
-          ...(['views','visitors'] as const).map(k=>recorded(d,first)?Number(daily.get(d)?.[k]??0):'未有紀錄'),
-          newValue(d)??'未有紀錄',
-          ...(['likes','unlikes','comments'] as const).map(k=>recorded(d,first)?Number(daily.get(d)?.[k]??0):'未有紀錄')
-        ]));
+      if(visitorView){
+        table('[data-daily-table]',['日期','累計訪客數','開啟文章的訪客','新訪客（首次出現）','新增 ♥','取消 ♥','留言／回覆'],
+          dates.map((d,i)=>[d,cumulativeValues[i]??'未有紀錄',recorded(d,first)?Number(daily.get(d)?.visitors??0):'未有紀錄',newValue(d)??'未有紀錄',
+            ...(['likes','unlikes','comments'] as const).map(k=>recorded(d,first)?Number(daily.get(d)?.[k]??0):'未有紀錄')]));
+      }else{
+        table('[data-daily-table]',['日期','文章開啟'],dates.map(d=>[d,recorded(d,first)?Number(daily.get(d)?.views??0):'未有紀錄']));
+      }
+      let sourceTotal=0;
+      if(!visitorView){
       const sourceKeys=Object.keys(data.sourceLabels) as string[];
       const sourceDay=new Map<string,number>((data.sourceDaily as SourceRow[]).map(r=>[r.day+'|'+r.source,r.views]));
       const legend=root.querySelector<HTMLElement>('[data-source-legend]')!;legend.replaceChildren();
       sourceKeys.forEach((key,i)=>{const item=el('span'),swatch=el('i');swatch.style.backgroundColor=palette[i];item.append(swatch,document.createTextNode(data.sourceLabels[key]));legend.append(item);});
       chart(root.querySelector<HTMLElement>('[data-source-chart]')!,'各來源文章開啟',dates,
         sourceKeys.map((key,i)=>({label:data.sourceLabels[key],color:palette[i],values:dates.map(d=>recorded(d,firstSource)?sourceDay.get(d+'|'+key)??0:null)})));
-      const sourceTotal=(data.sources as SourceRow[]).reduce((n,r)=>n+r.views,0);
+      sourceTotal=(data.sources as SourceRow[]).reduce((n,r)=>n+r.views,0);
       table('[data-source-table]',['來源','文章開啟','占已記錄來源比例','瀏覽器訪客（各來源可重疊）'],
         (data.sources as SourceRow[]).map(r=>[data.sourceLabels[r.source]||r.source,r.views,sourceTotal?(r.views/sourceTotal*100).toFixed(1)+'%':'—',r.visitors]));
       table('[data-source-daily-table]',['日期',...sourceKeys.map(k=>data.sourceLabels[k])],
         dates.map(d=>[d,...sourceKeys.map(k=>recorded(d,firstSource)?sourceDay.get(d+'|'+k)??0:'未有紀錄')]));
       table('[data-article-table]',['文章','開啟','瀏覽器訪客','新增 ♥','取消 ♥','留言／回覆'],
         data.articles.map((r:any)=>{const a=el('a',titles[r.slug]||r.slug);a.href=articleLink(r.slug);return[a,r.views,r.visitors,r.likes,r.unlikes,r.comments];}));
-      content.hidden=false;status.textContent='已更新。來源已記錄 '+sourceTotal+' 次文章開啟。';
+      if(!Array.isArray(data.articleRanking))throw new Error('請同時更新 admin-trends.ts，以顯示文章排行。');
+      const ranking=root.querySelector<HTMLElement>('[data-article-ranking]')!;
+      ranking.replaceChildren();
+      const ranked=data.articleRanking as {slug:string;visitors:number}[];
+      if(!ranked.length)ranking.append(el('p','此期間尚無文章開啟紀錄。'));
+      const max=Math.max(1,...ranked.map(r=>Number(r.visitors)));
+      for(const r of ranked){
+        const row=el('a');row.className='article-rank-row';row.href=articleLink(r.slug);
+        const label=el('span',titles[r.slug]||r.slug),track=el('span'),bar=el('span'),value=el('span',String(r.visitors));
+        track.className='article-rank-track';bar.className='article-rank-bar';bar.style.width=Number(r.visitors)/max*100+'%';
+        track.append(bar);row.append(label,track,value);ranking.append(row);
+      }
+      }
+      content.hidden=false;status.textContent=visitorView?'期間統計已更新。':'已更新。來源已記錄 '+sourceTotal+' 次文章開啟。';
     }catch(error){if(current===generation)status.textContent=error instanceof Error?error.message:'無法載入趨勢';}
   }
-  period.addEventListener('change',()=>void load());
-  root.querySelector('[data-trend-refresh]')!.addEventListener('click',()=>void load());
-  if(await ensureAdmin())void load();
+  loaders.push(load);
+  }
+  period.addEventListener('change',()=>{for(const load of loaders)void load();});
+  document.querySelector('[data-dashboard-refresh]')!.addEventListener('click',()=>{
+    responses.delete(period.value);
+    for(const load of loaders)void load();
+  });
+  if(await ensureAdmin())for(const load of loaders)void load();
 </script>
