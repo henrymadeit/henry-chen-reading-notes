@@ -10,6 +10,7 @@ pinned: 0
 featured: 0
 cover: /images/covers/ai-asic.jpg
 coverCaption: GPU與ASIC的差異
+extendedReading: [jensen-huang]
 ---
 
 週末用ChatGPT來看AI ASIC的發展。還試用了AI Agent新功能。用AI模型研究AI晶片，有趣又有收穫。

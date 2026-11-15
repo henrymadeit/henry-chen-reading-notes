@@ -12,7 +12,7 @@ category: 閱讀隨筆
 
 draft: false
 //pinned: 2
-featured: 12
+//featured: 12
 extendedReading: [tiger]
 ---
 

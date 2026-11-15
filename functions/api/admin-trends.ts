@@ -5,7 +5,7 @@ import {sourceLabels} from '../../server/traffic';
 export const onRequestGet: PagesFunction<ReaderEnv> = async ({request,env}) => {
   if(!await isAdmin(request,env))return privateJson({error:'請先登入'},401);
   const requested=Number(new URL(request.url).searchParams.get('days'));
-  const days=[7,30,90].includes(requested)?requested:30;
+  const days=[1,3,7,30,90,120,180].includes(requested)?requested:30;
   // Explicit Taipei calendar boundaries; no reliance on database host timezone.
   const today=new Date(Date.now()+8*3600000).toISOString().slice(0,10);
   const startDay=new Date(Date.parse(today+'T00:00:00Z')-(days-1)*86400000).toISOString().slice(0,10);

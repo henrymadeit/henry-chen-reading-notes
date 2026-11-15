@@ -168,7 +168,7 @@ nav a[aria-current="page"] { color: var(--text); }
       rgba(18, 20, 18, 0.10) 70%,
       rgba(18, 20, 18, 0) 100%
     ),
-    url('/images/headers/about.jpg') center / cover no-repeat;
+    url('/images/headers/about-1.jpg') center / cover no-repeat;
 
   padding-block: clamp(3rem, 7vw, 5rem);
   padding-inline: clamp(1.5rem, 4vw, 50px);

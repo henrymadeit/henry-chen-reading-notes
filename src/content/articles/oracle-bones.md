@@ -10,8 +10,8 @@ coverCaption: 繁體中文版封面
 
 category: 歷史與文明
 draft: false
-pinned: 0
-featured: 0
+pinned: 6
+//featured: 14
 extendedReading: [the-buried]
 ---
 

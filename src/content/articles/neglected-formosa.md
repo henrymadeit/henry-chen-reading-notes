@@ -13,7 +13,7 @@ coverCaption: 十七世紀荷語版書封面
 category: 台灣與世界
 //draft: true
 pinned: 4
-featured: 0
+featured: 14
 extendedReading: [zeelandia-battle]
 ---
 	
