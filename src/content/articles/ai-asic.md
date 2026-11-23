@@ -2,15 +2,15 @@
 title: LLM與AI ASIC
 description: AI晶片間的競爭
 published: 2025-08-31
-category: 行旅與隨想
+category: 見聞與雜感
 tags:  [AI, ASIC, 晶片, Inference]
 
-message: 一年前的看法。有趣，但不完全正確。
+//message: 一年前的看法。有趣，但不完全正確。
 pinned: 0
 featured: 0
 cover: /images/covers/ai-asic.jpg
 coverCaption: GPU與ASIC的差異
-extendedReading: [jensen-huang]
+extendedReading: [anthropic-ipo]
 ---
 
 週末用ChatGPT來看AI ASIC的發展。還試用了AI Agent新功能。用AI模型研究AI晶片，有趣又有收穫。

@@ -1,12 +1,12 @@
 export const sourceLabels: Record<string,string> = {
   google:'Google', facebook:'Facebook', line:'LINE（標記連結）',
   instagram:'Instagram', threads:'Threads', bing:'Bing',
-  other:'其他網站', direct:'直接／來源不明'
+  pwa:'桌面 App', other:'其他網站', direct:'直接／來源不明'
 };
 export function classifySource(value: unknown, referrer: unknown, ownOrigin: string): string {
   const utm = typeof value === 'string' ? value.toLowerCase().slice(0,80) : '';
   const aliases: Record<string,string> = {google:'google',facebook:'facebook',fb:'facebook',
-    line:'line',instagram:'instagram',ig:'instagram',threads:'threads',bing:'bing'};
+    line:'line',instagram:'instagram',ig:'instagram',threads:'threads',bing:'bing',pwa:'pwa'};
   if (Object.hasOwn(aliases,utm)) return aliases[utm];
   if (utm) return 'other';
   if (typeof referrer !== 'string' || referrer.length > 2048) return 'direct';

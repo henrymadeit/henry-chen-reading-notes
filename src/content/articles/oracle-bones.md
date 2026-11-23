@@ -9,9 +9,9 @@ cover: /images/covers/oracle-bones-cover.jpg
 coverCaption: 繁體中文版封面
 
 category: 歷史與文明
-draft: false
+//draft: true 
 pinned: 6
-//featured: 14
+featured: 16
 extendedReading: [the-buried]
 ---
 

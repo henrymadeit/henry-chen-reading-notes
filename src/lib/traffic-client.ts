@@ -3,7 +3,10 @@ let captured:Arrival | undefined;
 export function captureArrival():Arrival {
   if (captured) return captured;
   const now=Date.now();
-  const source=(new URL(location.href).searchParams.get('utm_source') || '').slice(0,80);
+  const standalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (navigator as Navigator & {standalone?: boolean}).standalone === true;
+  const source=(new URL(location.href).searchParams.get('utm_source') || (standalone ? 'pwa' : '')).slice(0,80);
   let external=false;
   try { external=!!document.referrer && new URL(document.referrer).origin!==location.origin; } catch {}
   const fresh={source,referrer:external?document.referrer.slice(0,2048):'',at:now};

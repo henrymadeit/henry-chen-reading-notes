@@ -1,7 +1,8 @@
 {
   "name": "Henry Chen 的隨筆",
   "short_name": "Henry Chen 的隨筆",
-  "start_url": "/",
+  "id": "/",
+  "start_url": "/?utm_source=pwa",
   "scope": "/",
   "display": "standalone",
   "background_color": "#101d27",

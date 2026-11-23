@@ -15,6 +15,7 @@ draft: true
 pinned: 0
 featured: 0
 extendedReading: [no-rightwing-in-taiwan]
+//takeaway: 曾經 Pinned, featured
 ---
 
 余杰自大光三部曲後的大作。他寫得認真，我讀得辛苦。有收獲也有聯想。

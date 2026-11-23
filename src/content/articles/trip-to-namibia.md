@@ -4,7 +4,7 @@ description: 2025年的大旅行 [0422-0508]
 published: 2025-05-20
 tags: [非洲, 攝影團, 沙漠, 動物]
 
-category: 行旅與隨想
+category: 見聞與雜感
 
 //draft: true
 pinned: 0

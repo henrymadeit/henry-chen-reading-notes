@@ -17,7 +17,7 @@ const articles = defineCollection({
     category: z.enum([
       '閱讀隨筆',
       '歷史與文明',
-      '行旅與隨想',
+      '見聞與雜感',
       '台灣與世界',
       '廈門大稻埕陳氏'
     ]),

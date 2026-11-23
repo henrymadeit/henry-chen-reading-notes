@@ -6,7 +6,7 @@ tags: [非洲, 肯亞, 辛巴威, 馬賽馬拉, 維多利亞瀑布, Safari]
 
 cover: /images/articles/east-africa-safari/east-africa-safaris-map.png
 
-category: 行旅與隨想
+category: 見聞與雜感
 pinned: 0
 featured: 7
 
